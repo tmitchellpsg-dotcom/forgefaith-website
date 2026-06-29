@@ -119,6 +119,7 @@
 
 /* ── DEVOTION PREVIEW ── */
 .devotion-peek { background: var(--dark); }
+@keyframes spin { to { transform: rotate(360deg); } }
 .peek-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 3rem; }
 .peek-card {
   background: var(--dark-3); border: 1px solid var(--gold-border);
@@ -304,34 +305,73 @@
     <p class="section-label">Monthly Series</p>
     <h2 class="section-title">This Month's Word</h2>
     <p class="section-sub">A new series of devotions launches every month. Day 1 is always free. Go Pro to unlock the full month.</p>
-    <div class="peek-grid">
-      <div class="peek-card fade-in">
-        <p class="peek-day">Day 1 — Free</p>
-        <h3>The Weight of Purpose</h3>
-        <p class="peek-verse">"Whatever you do, do your work heartily, as for the Lord…" — Col 3:23</p>
-        <p>Every man carries weight. The question isn't whether you'll carry it — it's whether you'll carry it for something worth the cost. Paul wrote this from a prison cell. Not theory. He was living it.</p>
-        <div class="peek-cta"><a href="pages/devotions.html" class="btn-ghost">Read Full Devotion</a></div>
-      </div>
-      <div class="peek-card fade-in" style="opacity:0.55; pointer-events:none;">
-        <p class="peek-day">Day 2 — Pro</p>
-        <h3>Hold the Line</h3>
-        <p class="peek-verse">"Be watchful, stand firm in the faith, act like men, be strong." — 1 Cor 16:13</p>
-        <p>Paul's command isn't a suggestion. In a world that wants you soft, standing firm is a countercultural act. The enemy erodes slowly — one small compromise, one skipped morning.</p>
-        <div class="peek-cta"><span style="font-size:0.8rem; color:var(--text-dim);">🔒 Unlock with Pro</span></div>
-      </div>
-      <div class="peek-card fade-in" style="opacity:0.55; pointer-events:none;">
-        <p class="peek-day">Day 3 — Pro</p>
-        <h3>Forged in the Fire</h3>
-        <p class="peek-verse">"Behold, I have refined you, but not as silver; I have tested you in the furnace of affliction." — Is 48:10</p>
-        <p>Fire doesn't destroy iron — it reveals it. The pressure you're under right now isn't punishment. It's process. God isn't surprised by your furnace.</p>
-        <div class="peek-cta"><span style="font-size:0.8rem; color:var(--text-dim);">🔒 Unlock with Pro</span></div>
+    <div class="peek-grid" id="homePeekGrid">
+      <div style="grid-column:1/-1; text-align:center; padding:3rem; color:var(--text-muted);">
+        <div style="width:28px;height:28px;border:2px solid var(--gold-border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+        <p>Loading devotions...</p>
       </div>
     </div>
     <div style="text-align:center; margin-top:2.5rem;">
-      <a href="pages/devotions.html" class="btn-outline">See All 14 Days</a>
+      <a href="pages/devotions.html" class="btn-outline">See This Month's Series</a>
     </div>
   </div>
 </section>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs, orderBy, query, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
+  authDomain: "forge-by-faith-u1c1tx.firebaseapp.com",
+  projectId: "forge-by-faith-u1c1tx",
+  storageBucket: "forge-by-faith-u1c1tx.firebasestorage.app",
+  messagingSenderId: "214263463654",
+  appId: "1:214263463654:web:e5dc76d0c8b42760364527"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+function isUnlocked(d) {
+  if (d.day_number === 1) return true;
+  if (!d.unlock_date) return false;
+  const unlockDate = d.unlock_date.toDate ? d.unlock_date.toDate() : new Date(d.unlock_date);
+  return new Date() >= unlockDate;
+}
+
+async function loadPeek() {
+  try {
+    const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'), limit(3));
+    const snapshot = await getDocs(q);
+    const devotions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const grid = document.getElementById('homePeekGrid');
+    if (devotions.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">Devotions launching soon.</div>';
+      return;
+    }
+    grid.innerHTML = devotions.map(d => {
+      const free = d.day_number === 1;
+      const unlocked = isUnlocked(d);
+      return `<div class="peek-card fade-in" ${!unlocked ? 'style="opacity:0.55;pointer-events:none;"' : ''}>
+        <p class="peek-day">Day ${d.day_number}${free ? ' — Free' : ' — Pro'}</p>
+        <h3>${d.title || ''}</h3>
+        ${d.verse_text ? `<p class="peek-verse">"${d.verse_text.substring(0,80)}${d.verse_text.length>80?'…':''}" — ${d.verse_reference||''}</p>` : ''}
+        <p>${(d.body_1||'').substring(0,140)}${(d.body_1||'').length>140?'…':''}</p>
+        <div class="peek-cta">
+          ${unlocked
+            ? `<a href="pages/devotions.html" class="btn-ghost">Read Full Devotion</a>`
+            : `<span style="font-size:0.8rem;color:var(--text-dim);">🔒 Unlock with Pro</span>`}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    console.error(err);
+    document.getElementById('homePeekGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">Unable to load devotions right now.</div>';
+  }
+}
+loadPeek();
+</script>
 
 <!-- ── APP DOWNLOAD ── -->
 <section class="app-section" id="download">
