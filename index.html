@@ -29,10 +29,24 @@
     linear-gradient(to bottom, rgba(8,8,8,0.55) 0%, rgba(8,8,8,0.4) 50%, rgba(8,8,8,0.75) 100%),
     radial-gradient(ellipse 90% 70% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 65%);
 }
-.hero-cross-wrap {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;
+.hero-pillars-wrap {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 0.75rem 1.25rem; margin-bottom: 3rem; position: relative; z-index: 2;
+  max-width: 900px;
 }
-.hero-cross-svg { width: min(60vw,520px); height: min(60vw,520px); opacity: 0.028; }
+.hero-pillar-item {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(1.4rem, 3.5vw, 2.8rem);
+  font-weight: 900; color: var(--text);
+  letter-spacing: 0.04em; line-height: 1.1; text-align: center;
+}
+.hero-pillar-divider {
+  color: var(--gold); font-size: 0.8rem; opacity: 0.6;
+}
+@media (max-width: 600px) {
+  .hero-pillars-wrap { flex-direction: column; gap: 0.5rem; }
+  .hero-pillar-divider { display: none; }
+}
 .hero-eyebrow {
   font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase;
   color: var(--gold); margin-bottom: 2rem;
@@ -213,15 +227,15 @@
 <!-- ── HERO ── -->
 <section class="home-hero">
   <div class="hero-bg"></div>
-  <div class="hero-cross-wrap">
-    <svg class="hero-cross-svg" viewBox="0 0 200 200" fill="white" xmlns="http://www.w3.org/2000/svg">
-      <rect x="87" y="5" width="26" height="190"/>
-      <rect x="15" y="68" width="170" height="26"/>
-    </svg>
+  <div class="hero-pillars-wrap">
+    <div class="hero-pillar-item">MEN ARE BEING FORGED</div>
+    <div class="hero-pillar-divider">✦</div>
+    <div class="hero-pillar-item">100% SCRIPTURE FIRST</div>
+    <div class="hero-pillar-divider">✦</div>
+    <div class="hero-pillar-item">REAL FAITH. REAL LIFE.</div>
+    <div class="hero-pillar-divider">✦</div>
+    <div class="hero-pillar-item">LIVE WITH PURPOSE</div>
   </div>
-  <p class="hero-eyebrow">Forge Faith Nation</p>
-  <h1>Sharpen your faith.<em>Every. Single. Day.</em></h1>
-  <p class="sub">A daily devotional built for men who don't quit — blue collar, athlete, coach, leader. Rooted in Scripture. No fluff. Just truth and the grind.</p>
   <div class="hero-actions">
     <a href="#download" class="btn-primary">Download Free</a>
     <a href="pages/devotions.html" class="btn-outline">Read a Devotion</a>
@@ -232,10 +246,10 @@
 <!-- ── STATS ── -->
 <div class="stats-bar">
   <div class="stats-grid">
-    <div class="fade-in"><div class="stat-num">14</div><div class="stat-label">Daily Devotions</div></div>
-    <div class="fade-in"><div class="stat-num">NASB</div><div class="stat-label">Translation</div></div>
-    <div class="fade-in"><div class="stat-num">iOS</div><div class="stat-label">Available Now</div></div>
-    <div class="fade-in"><div class="stat-num">$0</div><div class="stat-label">To Start</div></div>
+    <div class="fade-in"><div class="stat-num">⚒</div><div class="stat-label">Men Are Being Forged</div></div>
+    <div class="fade-in"><div class="stat-num">100%</div><div class="stat-label">Scripture First</div></div>
+    <div class="fade-in"><div class="stat-num">Real</div><div class="stat-label">Faith. Real Life.</div></div>
+    <div class="fade-in"><div class="stat-num">Live</div><div class="stat-label">With Purpose</div></div>
   </div>
 </div>
 
@@ -244,10 +258,11 @@
   <div class="container">
     <div class="about-grid">
       <div class="fade-in">
-        <p class="section-label">What is Forge Faith</p>
-        <h2 class="section-title">Built for men who show up</h2>
+        <p class="section-label">Why Forge Faith</p>
+        <h2 class="section-title">Forging Strong Men. Building Strong Faith.</h2>
         <div class="gold-line"></div>
-        <p class="section-sub">Forge Faith is a daily devotional app for men ready to go deeper — not softer. Every devotion is direct, practical, and written in a voice that doesn't waste your time or sugarcoat the truth.</p>
+        <p class="section-sub">Forge Faith exists to challenge men to become grounded in truth, led by faith, and willing to stand when others won't. Through daily devotions, practical challenges, honest conversations, and a growing community of men pursuing God together, Forge Faith calls men to live with courage, discipline, integrity, and purpose.</p>
+        <p class="section-sub" style="margin-top:1rem;">Whether you're just beginning your walk with Christ or have followed Him for years, you'll find biblical encouragement, practical wisdom, and a brotherhood committed to growing stronger every day. This isn't about religion — it's about becoming the man God created you to be.</p>
         <div class="about-verse">
           <blockquote>"Iron sharpens iron, so one man sharpens another."</blockquote>
           <cite>— Proverbs 27:17 (NASB)</cite>
