@@ -30,22 +30,32 @@
     radial-gradient(ellipse 90% 70% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 65%);
 }
 .hero-pillars-wrap {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 0.75rem 1.25rem; margin-bottom: 3rem; position: relative; z-index: 2;
-  max-width: 900px;
+  display: none;
 }
-.hero-pillar-item {
+.pillars-strip {
+  background: var(--dark-2);
+  border-top: 1px solid var(--gold-border);
+  border-bottom: 1px solid var(--gold-border);
+  padding: 1.25rem 5vw;
+  overflow: hidden;
+}
+.pillars-strip-inner {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1.5rem; flex-wrap: wrap; max-width: 1120px; margin: 0 auto;
+}
+.pillar-strip-item {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(1.4rem, 3.5vw, 2.8rem);
-  font-weight: 900; color: var(--text);
-  letter-spacing: 0.04em; line-height: 1.1; text-align: center;
+  font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+  font-weight: 700; color: var(--text);
+  letter-spacing: 0.08em; white-space: nowrap;
 }
-.hero-pillar-divider {
-  color: var(--gold); font-size: 0.8rem; opacity: 0.6;
+.pillar-strip-divider {
+  color: var(--gold); opacity: 0.4; font-size: 1rem;
 }
-@media (max-width: 600px) {
-  .hero-pillars-wrap { flex-direction: column; gap: 0.5rem; }
-  .hero-pillar-divider { display: none; }
+@media (max-width: 700px) {
+  .pillar-strip-divider { display: none; }
+  .pillars-strip-inner { gap: 0.6rem; }
+  .pillar-strip-item { font-size: 0.8rem; white-space: normal; text-align: center; }
 }
 .hero-eyebrow {
   font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase;
@@ -200,7 +210,9 @@
 <body>
 
 <nav>
-  <a href="index.html" class="nav-logo">⚒ Forge Faith</a>
+  <a href="index.html" class="nav-logo">
+    <img src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2FLogo%201.png?alt=media&token=e19276cf-84e1-498b-b9ab-68963819c25a" alt="Forge Faith" style="height:42px; width:auto; object-fit:contain;">
+  </a>
   <ul class="nav-links">
     <li><a href="index.html" class="active">Home</a></li>
     <li><a href="pages/devotions.html">Devotions</a></li>
@@ -227,21 +239,29 @@
 <!-- ── HERO ── -->
 <section class="home-hero">
   <div class="hero-bg"></div>
-  <div class="hero-pillars-wrap">
-    <div class="hero-pillar-item">MEN ARE BEING FORGED</div>
-    <div class="hero-pillar-divider">✦</div>
-    <div class="hero-pillar-item">100% SCRIPTURE FIRST</div>
-    <div class="hero-pillar-divider">✦</div>
-    <div class="hero-pillar-item">REAL FAITH. REAL LIFE.</div>
-    <div class="hero-pillar-divider">✦</div>
-    <div class="hero-pillar-item">LIVE WITH PURPOSE</div>
+  <div class="hero-scroll"><div class="scroll-line"></div>Scroll</div>
+</section>
+
+<!-- ── PILLARS BELOW HERO ── -->
+<div class="pillars-strip">
+  <div class="pillars-strip-inner">
+    <div class="pillar-strip-item">⚒ MEN ARE BEING FORGED</div>
+    <div class="pillar-strip-divider">|</div>
+    <div class="pillar-strip-item">100% SCRIPTURE FIRST</div>
+    <div class="pillar-strip-divider">|</div>
+    <div class="pillar-strip-item">REAL FAITH. REAL LIFE.</div>
+    <div class="pillar-strip-divider">|</div>
+    <div class="pillar-strip-item">LIVE WITH PURPOSE</div>
   </div>
-  <div class="hero-actions">
+</div>
+
+<!-- ── HERO CTA ── -->
+<div style="background:var(--dark); padding:3rem 5vw; text-align:center; border-bottom:1px solid var(--gold-border);">
+  <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
     <a href="#download" class="btn-primary">Download Free</a>
     <a href="pages/devotions.html" class="btn-outline">Read a Devotion</a>
   </div>
-  <div class="hero-scroll"><div class="scroll-line"></div>Scroll</div>
-</section>
+</div>
 
 <!-- ── STATS ── -->
 <div class="stats-bar">
@@ -281,9 +301,9 @@
 <!-- ── DEVOTION PEEK ── -->
 <section class="devotion-peek" id="devotions-preview">
   <div class="container">
-    <p class="section-label">14-Day Series</p>
-    <h2 class="section-title">Today's Word</h2>
-    <p class="section-sub">Day 1 is free. Unlock the full series with Forge Faith Pro.</p>
+    <p class="section-label">Monthly Series</p>
+    <h2 class="section-title">This Month's Word</h2>
+    <p class="section-sub">A new series of devotions launches every month. Day 1 is always free. Go Pro to unlock the full month.</p>
     <div class="peek-grid">
       <div class="peek-card fade-in">
         <p class="peek-day">Day 1 — Free</p>
