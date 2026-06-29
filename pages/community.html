@@ -1,129 +1,256 @@
-⚒ Forge Faith
-Home
-Devotions
-Prayer Wall
-Podcast
-Merch
-Nation
-Download App 
-Home Devotions Prayer Wall Podcast Merch Nation Download App
-Brotherhood
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge Faith Nation — Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.nation-hero {
+  min-height: 80vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center;
+  padding: 9rem 5vw 5rem; position: relative; overflow: hidden;
+}
+.nation-hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 70% at 50% 40%, rgba(201,168,76,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+.nation-hero h1 { font-size: clamp(3rem, 8vw, 6rem); max-width: 860px; margin-bottom: 1.5rem; }
+.nation-hero h1 em { color: var(--gold); font-style: normal; display: block; }
+.nation-hero p { color: var(--text-muted); max-width: 520px; font-size: 1.1rem; line-height: 1.9; margin-bottom: 3rem; }
 
-Welcome to
-Forge Faith Nation
-This isn't a fan club. It's a brotherhood of men sharpening each other — on the job site, the field, the gym, and in life. Men who show up. Men who don't quit. Men who believe in something bigger than themselves.
+/* pillars */
+.nation-pillars { background: var(--dark-2); }
+.pillars-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+.np-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px;
+  padding: 2rem; text-align: center; transition: border-color 0.2s;
+}
+.np-card:hover { border-color: var(--gold); }
+.np-icon { font-size: 2.5rem; margin-bottom: 1.25rem; }
+.np-card h3 { font-size: 1.2rem; margin-bottom: 0.75rem; }
+.np-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; }
 
-Join the Prayer Wall
-Download the App
-What We Stand For
+/* code of honor */
+.honor-section { background: var(--dark); }
+.honor-list { list-style: none; display: flex; flex-direction: column; gap: 0; margin-top: 3rem; max-width: 760px; }
+.honor-item {
+  display: flex; gap: 2rem; align-items: flex-start;
+  padding: 1.75rem 0; border-bottom: 1px solid var(--gold-border);
+}
+.honor-item:first-child { border-top: 1px solid var(--gold-border); }
+.honor-num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--gold); opacity: 0.4; flex-shrink: 0; width: 2rem; line-height: 1; padding-top: 0.1rem; }
+.honor-text h4 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 1rem; color: var(--text); margin-bottom: 0.35rem; }
+.honor-text p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; }
 
-The three pillars of Forge Faith Nation
-⚔️
-Truth Without Apology
-We don't water down Scripture to make it easier. We read it, wrestle with it, and let it change us. The truth is a gift, not a threat.
+/* testimonials */
+.testimonials-section { background: var(--dark-2); }
+.test-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+.test-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; padding: 1.75rem;
+}
+.test-stars { color: var(--gold); font-size: 0.85rem; margin-bottom: 0.85rem; letter-spacing: 0.1em; }
+.test-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: var(--text); line-height: 1.7; margin-bottom: 1.25rem; }
+.test-author { display: flex; align-items: center; gap: 0.75rem; }
+.test-avatar { width: 36px; height: 36px; background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+.test-name strong { display: block; font-size: 0.88rem; color: var(--text); }
+.test-name span { font-size: 0.75rem; color: var(--text-muted); }
 
-🔨
-Hard Work as Worship
-We believe that showing up — to work, to family, to faith, to the grind — is an act of worship when done with the right heart. We don't quit.
+/* join section */
+.join-section { text-align: center; padding: 7rem 5vw; position: relative; overflow: hidden; }
+.join-section::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, rgba(201,168,76,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.join-section h2 { font-size: clamp(2rem, 5vw, 4rem); max-width: 700px; margin: 0.75rem auto 1.5rem; }
+.join-section h2 em { color: var(--gold); font-style: normal; }
+.join-section p { color: var(--text-muted); max-width: 480px; margin: 0 auto 2.5rem; font-size: 1rem; line-height: 1.85; }
+.join-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
-🙏
-Brotherhood in Battle
-Men were not designed to fight alone. We stand with each other. We pray for each other. We tell each other the truth even when it's hard.
+/* social links */
+.social-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 3rem; }
+.social-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; padding: 1.5rem;
+  text-align: center; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+}
+.social-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.social-icon { font-size: 2rem; }
+.social-card h4 { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; }
+.social-card p { font-size: 0.78rem; color: var(--text-muted); }
+.social-card a { font-size: 0.75rem; color: var(--gold); margin-top: 0.25rem; }
 
-The Code
+@media (max-width: 768px) {
+  .pillars-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
 
-The Forge Faith Code of Honor
-These aren't rules. They're the convictions of a man who has decided to live for something worth dying for.
+<nav>
+  <a href="../index.html" class="nav-logo">⚒ Forge Faith</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="devotions.html">Devotions</a></li>
+    <li><a href="prayer-wall.html">Prayer Wall</a></li>
+    <li><a href="podcast.html">Podcast</a></li>
+    <li><a href="merch.html">Merch</a></li>
+    <li><a href="community.html" class="active">Nation</a></li>
+  </ul>
+  <a href="../index.html#download" class="nav-cta">Download App</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a>
+  <a href="devotions.html">Devotions</a>
+  <a href="prayer-wall.html">Prayer Wall</a>
+  <a href="podcast.html">Podcast</a>
+  <a href="merch.html">Merch</a>
+  <a href="community.html">Nation</a>
+  <a href="../index.html#download" class="nav-cta">Download App</a>
+</div>
 
-I
-I show up every day
-Not when it's convenient. Not when I feel like it. I show up when it's hard — because that's when it counts the most.
+<!-- HERO -->
+<section class="nation-hero">
+  <p class="hero-eyebrow">Brotherhood</p>
+  <h1>Welcome to<em>Forge Faith Nation</em></h1>
+  <p>This isn't a fan club. It's a brotherhood of men sharpening each other — on the job site, the field, the gym, and in life. Men who show up. Men who don't quit. Men who believe in something bigger than themselves.</p>
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;">
+    <a href="prayer-wall.html" class="btn-primary">Join the Prayer Wall</a>
+    <a href="../index.html#download" class="btn-outline">Download the App</a>
+  </div>
+</section>
 
-II
-I put God first
-Before the job, before the hustle, before the phone. Every morning belongs to God before it belongs to anything else.
+<!-- NATION PILLARS -->
+<section class="nation-pillars">
+  <div class="container">
+    <p class="section-label">What We Stand For</p>
+    <h2 class="section-title">The three pillars of Forge Faith Nation</h2>
+    <div class="pillars-grid">
+      <div class="np-card">
+        <div class="np-icon">⚔️</div>
+        <h3>Truth Without Apology</h3>
+        <p>We don't water down Scripture to make it easier. We read it, wrestle with it, and let it change us. The truth is a gift, not a threat.</p>
+      </div>
+      <div class="np-card">
+        <div class="np-icon">🔨</div>
+        <h3>Hard Work as Worship</h3>
+        <p>We believe that showing up — to work, to family, to faith, to the grind — is an act of worship when done with the right heart. We don't quit.</p>
+      </div>
+      <div class="np-card">
+        <div class="np-icon">🙏</div>
+        <h3>Brotherhood in Battle</h3>
+        <p>Men were not designed to fight alone. We stand with each other. We pray for each other. We tell each other the truth even when it's hard.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-III
-I lead my home
-My wife and my kids need a man who is present, not just providing. I will be both — and I will lead spiritually first.
+<!-- CODE OF HONOR -->
+<section class="honor-section">
+  <div class="container">
+    <p class="section-label">The Code</p>
+    <h2 class="section-title">The Forge Faith Code of Honor</h2>
+    <p class="section-sub">These aren't rules. They're the convictions of a man who has decided to live for something worth dying for.</p>
+    <ul class="honor-list">
+      <li class="honor-item"><span class="honor-num">I</span><div class="honor-text"><h4>I show up every day</h4><p>Not when it's convenient. Not when I feel like it. I show up when it's hard — because that's when it counts the most.</p></div></li>
+      <li class="honor-item"><span class="honor-num">II</span><div class="honor-text"><h4>I put God first</h4><p>Before the job, before the hustle, before the phone. Every morning belongs to God before it belongs to anything else.</p></div></li>
+      <li class="honor-item"><span class="honor-num">III</span><div class="honor-text"><h4>I lead my home</h4><p>My wife and my kids need a man who is present, not just providing. I will be both — and I will lead spiritually first.</p></div></li>
+      <li class="honor-item"><span class="honor-num">IV</span><div class="honor-text"><h4>I don't run from hard conversations</h4><p>I will tell the truth in love. I will receive truth from my brothers. I won't hide behind silence when someone needs to hear the word.</p></div></li>
+      <li class="honor-item"><span class="honor-num">V</span><div class="honor-text"><h4>I stand with my brothers</h4><p>When a man in this nation is struggling, I don't scroll past. I pray. I reach out. I show up. Iron sharpens iron — that's not a slogan, it's a commitment.</p></div></li>
+      <li class="honor-item"><span class="honor-num">VI</span><div class="honor-text"><h4>I play the long game</h4><p>I don't measure my life in quarterly results. I measure it in faithfulness — to God, to my family, to my word, to the mission He gave me.</p></div></li>
+    </ul>
+  </div>
+</section>
 
-IV
-I don't run from hard conversations
-I will tell the truth in love. I will receive truth from my brothers. I won't hide behind silence when someone needs to hear the word.
+<!-- TESTIMONIALS -->
+<section class="testimonials-section">
+  <div class="container">
+    <p class="section-label">Brothers Speaking</p>
+    <h2 class="section-title">From the Nation</h2>
+    <div class="test-grid">
+      <div class="test-card">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">"Day 1 hit me like a freight train. I've been going through the motions at work for two years and this reminded me why any of it matters."</p>
+        <div class="test-author"><div class="test-avatar">MT</div><div class="test-name"><strong>Marcus T.</strong><span>Construction foreman, Georgia</span></div></div>
+      </div>
+      <div class="test-card">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">"I'm not a devotional guy. Never been. But the way Forge Faith is written — direct, no fluff — this is finally something I can actually stick with."</p>
+        <div class="test-author"><div class="test-avatar">DR</div><div class="test-name"><strong>Derek R.</strong><span>High school football coach, Texas</span></div></div>
+      </div>
+      <div class="test-card">
+        <div class="test-stars">★★★★★</div>
+        <p class="test-text">"The prayer wall hit different. Knowing other men are carrying the same things I am — and actually praying — that's brotherhood right there."</p>
+        <div class="test-author"><div class="test-avatar">JW</div><div class="test-name"><strong>James W.</strong><span>Business owner, Florida</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-V
-I stand with my brothers
-When a man in this nation is struggling, I don't scroll past. I pray. I reach out. I show up. Iron sharpens iron — that's not a slogan, it's a commitment.
+<!-- SOCIAL / CONNECT -->
+<section style="padding:5rem 5vw; background:var(--dark);">
+  <div class="container">
+    <p class="section-label">Stay Connected</p>
+    <h2 class="section-title">Find the Nation</h2>
+    <p class="section-sub">Follow, subscribe, and join the conversation. The brotherhood doesn't clock out.</p>
+    <div class="social-grid">
+      <div class="social-card">
+        <div class="social-icon">📱</div>
+        <h4>Facebook</h4>
+        <p>Forge Faith Studios page for updates, content, and community.</p>
+        <a href="#">@ForgeFaithStudios →</a>
+      </div>
+      <div class="social-card">
+        <div class="social-icon">📸</div>
+        <h4>Instagram</h4>
+        <p>Daily quotes, behind-the-scenes, and Nation stories.</p>
+        <a href="#">@ForgeFaith →</a>
+      </div>
+      <div class="social-card">
+        <div class="social-icon">▶️</div>
+        <h4>YouTube</h4>
+        <p>Podcast episodes, devotion readings, and Nation content.</p>
+        <a href="#">Forge Faith →</a>
+      </div>
+      <div class="social-card">
+        <div class="social-icon">🍎</div>
+        <h4>App Store</h4>
+        <p>Download the app. Day 1 is free. The grind starts there.</p>
+        <a href="../index.html#download">Download Free →</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-VI
-I play the long game
-I don't measure my life in quarterly results. I measure it in faithfulness — to God, to my family, to my word, to the mission He gave me.
+<!-- JOIN CTA -->
+<section class="join-section">
+  <p class="section-label">Ready</p>
+  <h2>Are you ready to <em>forge your faith?</em></h2>
+  <p>Download the app. Start Day 1. Join the prayer wall. Wear the mission. This is your nation.</p>
+  <div class="join-actions">
+    <a href="../index.html#download" class="btn-primary">Download the App — Free</a>
+    <a href="prayer-wall.html" class="btn-outline">Join the Prayer Wall</a>
+  </div>
+</section>
 
-Brothers Speaking
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand"><div class="footer-brand-name">⚒ Forge Faith</div><p>Daily devotions for men of purpose. Built by Forge Faith Studios under KDT Investments Inc.</p></div>
+      <div class="footer-col"><h6>Pages</h6><ul><li><a href="../index.html">Home</a></li><li><a href="devotions.html">Devotions</a></li><li><a href="prayer-wall.html">Prayer Wall</a></li><li><a href="merch.html">Merch</a></li></ul></div>
+      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Use</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 KDT Investments Inc. · Forge Faith Studios. All rights reserved.</p>
+      <p class="footer-verse">"As iron sharpens iron" — Prov 27:17</p>
+    </div>
+  </div>
+</footer>
 
-From the Nation
-★★★★★
-"Day 1 hit me like a freight train. I've been going through the motions at work for two years and this reminded me why any of it matters."
-
-MT
-Marcus T.
-Construction foreman, Georgia
-★★★★★
-"I'm not a devotional guy. Never been. But the way Forge Faith is written — direct, no fluff — this is finally something I can actually stick with."
-
-DR
-Derek R.
-High school football coach, Texas
-★★★★★
-"The prayer wall hit different. Knowing other men are carrying the same things I am — and actually praying — that's brotherhood right there."
-
-JW
-James W.
-Business owner, Florida
-Stay Connected
-
-Find the Nation
-Follow, subscribe, and join the conversation. The brotherhood doesn't clock out.
-
-📱
-Facebook
-Forge Faith Studios page for updates, content, and community.
-
-@ForgeFaithStudios →
-📸
-Instagram
-Daily quotes, behind-the-scenes, and Nation stories.
-
-@ForgeFaith →
-▶️
-YouTube
-Podcast episodes, devotion readings, and Nation content.
-
-Forge Faith →
-🍎
-App Store
-Download the app. Day 1 is free. The grind starts there.
-
-Download Free →
-Ready
-
-Are you ready to forge your faith?
-Download the app. Start Day 1. Join the prayer wall. Wear the mission. This is your nation.
-
-Download the App — Free
-Join the Prayer Wall
-⚒ Forge Faith
-Daily devotions for men of purpose. Built by Forge Faith Studios under KDT Investments Inc.
-
-Pages
-Home
-Devotions
-Prayer Wall
-Merch
-App
-Download
-Privacy Policy
-Terms of Use
-© 2026 KDT Investments Inc. · Forge Faith Studios. All rights reserved.
-
-"As iron sharpens iron" — Prov 27:17
+<script src="../js/main.js"></script>
+</body>
+</html>

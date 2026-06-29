@@ -1,65 +1,216 @@
-⚒ Forge Faith
-Home
-Devotions
-Prayer Wall
-Podcast
-Merch
-Nation
-Download App 
-Home Devotions Prayer Wall Podcast Merch Nation Download App
-Monthly Podcast
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Podcast — Forge Faith</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.coming-soon-banner {
+  background: var(--gold-dim); border: 1px solid var(--gold-border);
+  border-radius: 6px; padding: 1.25rem 2rem; margin-bottom: 3rem;
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.coming-soon-banner p { font-size: 0.9rem; color: var(--text-muted); }
+.coming-soon-banner strong { color: var(--gold); }
 
-Forge Faith Podcast
-Real conversations for real men. Faith, purpose, leadership, and the grind — once a month, no fluff.
+.episodes-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem; margin-top: 1rem;
+}
+.episode-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.episode-card:hover { border-color: var(--gold); }
+.episode-thumb {
+  width: 100%; aspect-ratio: 16/9; background: var(--dark-4); position: relative; overflow: hidden;
+}
+.episode-thumb iframe { width: 100%; height: 100%; border: none; }
+.episode-placeholder {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0.75rem; text-align: center; padding: 1.5rem;
+}
+.play-icon { font-size: 2.5rem; opacity: 0.3; }
+.episode-placeholder p { font-size: 0.8rem; color: var(--text-dim); }
+.episode-info { padding: 1.5rem; }
+.ep-number { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+.episode-info h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
+.episode-info p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.7; }
+.ep-meta { display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); }
 
-🎙️
-Launching soon. The Forge Faith Podcast drops monthly. Drop your email below to be the first to know when Episode 1 goes live.
+/* subscribe strip */
+.subscribe-strip {
+  background: var(--dark-2); border-top: 1px solid var(--gold-border); border-bottom: 1px solid var(--gold-border);
+  padding: 3rem 5vw; text-align: center;
+}
+.podcast-platforms { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
+.platform-btn {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--dark-4); border: 1px solid var(--gold-border);
+  padding: 0.75rem 1.5rem; border-radius: 6px; color: var(--text-muted);
+  font-size: 0.85rem; transition: 0.2s;
+}
+.platform-btn:hover { border-color: var(--gold); color: var(--gold); }
+.platform-btn .ico { font-size: 1.25rem; }
 
-Get notified when Episode 1 drops
+.host-section { max-width: 760px; margin: 0 auto; }
+.host-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; padding: 2rem;
+  display: flex; gap: 2rem; align-items: flex-start; margin-top: 3rem;
+}
+.host-avatar {
+  width: 72px; height: 72px; flex-shrink: 0; background: var(--gold-dim);
+  border: 2px solid var(--gold-border); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2rem;
+}
+.host-info h3 { font-size: 1.2rem; margin-bottom: 0.25rem; }
+.host-info .host-title { font-size: 0.78rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem; }
+.host-info p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; }
 
-your@email.com
-Notify Me
-Episodes
+.notify-form { max-width: 480px; margin: 2rem auto 0; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.notify-form input { flex: 1; min-width: 200px; }
+.notify-form button { background: var(--gold); color: var(--dark); border: none; padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+.notify-form button:hover { background: var(--gold-light); }
+</style>
+</head>
+<body>
 
-Coming Soon
-▶
-Episode 1 drops soon
+<nav>
+  <a href="../index.html" class="nav-logo">⚒ Forge Faith</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="devotions.html">Devotions</a></li>
+    <li><a href="prayer-wall.html">Prayer Wall</a></li>
+    <li><a href="podcast.html" class="active">Podcast</a></li>
+    <li><a href="merch.html">Merch</a></li>
+    <li><a href="community.html">Nation</a></li>
+  </ul>
+  <a href="../index.html#download" class="nav-cta">Download App</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a>
+  <a href="devotions.html">Devotions</a>
+  <a href="prayer-wall.html">Prayer Wall</a>
+  <a href="podcast.html">Podcast</a>
+  <a href="merch.html">Merch</a>
+  <a href="community.html">Nation</a>
+  <a href="../index.html#download" class="nav-cta">Download App</a>
+</div>
 
-Episode 01
+<section class="page-hero">
+  <p class="hero-eyebrow">Monthly Podcast</p>
+  <h1>Forge Faith <em>Podcast</em></h1>
+  <p>Real conversations for real men. Faith, purpose, leadership, and the grind — once a month, no fluff.</p>
+</section>
 
-Why Men Need More Than Motivation
-In the first episode, we tackle why motivation fails and what actually sustains a man through the long seasons of life.
+<section style="padding-top:0;">
+  <div class="container">
+    <div class="coming-soon-banner">
+      <span style="font-size:1.5rem;">🎙️</span>
+      <p><strong>Launching soon.</strong> The Forge Faith Podcast drops monthly. Drop your email below to be the first to know when Episode 1 goes live.</p>
+    </div>
 
-🎙 Coming soon
-Your Host
+    <!-- NOTIFY SIGNUP -->
+    <div style="text-align:center; margin-bottom:4rem;">
+      <p style="color:var(--text-muted); margin-bottom:0.5rem; font-size:0.9rem;">Get notified when Episode 1 drops</p>
+      <div class="notify-form">
+        <input type="email" placeholder="your@email.com" id="notifyEmail">
+        <button onclick="notifySignup()">Notify Me</button>
+      </div>
+    </div>
 
-⚒
-Forge Faith Studios
-Forge Faith Nation Founder
+    <!-- EPISODES GRID — add YouTube embeds here -->
+    <div id="episodesSection">
+      <p class="section-label">Episodes</p>
+      <h2 class="section-title" style="margin-bottom:2rem;">Coming Soon</h2>
+      <div class="episodes-grid" id="episodesGrid">
+        <!-- PLACEHOLDER EPISODE CARD — replace with real ones -->
+        <div class="episode-card">
+          <div class="episode-thumb">
+            <div class="episode-placeholder">
+              <div class="play-icon">▶</div>
+              <p>Episode 1 drops soon</p>
+            </div>
+          </div>
+          <div class="episode-info">
+            <p class="ep-number">Episode 01</p>
+            <h3>Why Men Need More Than Motivation</h3>
+            <p>In the first episode, we tackle why motivation fails and what actually sustains a man through the long seasons of life.</p>
+            <div class="ep-meta"><span>🎙 Coming soon</span></div>
+          </div>
+        </div>
+        <!-- TO ADD A REAL EPISODE: Copy the block below, replace YOUTUBE_ID with the real ID from your YouTube URL -->
+        <!--
+        <div class="episode-card">
+          <div class="episode-thumb">
+            <iframe src="https://www.youtube.com/embed/YOUTUBE_ID" allowfullscreen></iframe>
+          </div>
+          <div class="episode-info">
+            <p class="ep-number">Episode 01</p>
+            <h3>Episode Title Here</h3>
+            <p>Episode description here.</p>
+            <div class="ep-meta"><span>🎙 Month Year</span><span>⏱ XX min</span></div>
+          </div>
+        </div>
+        -->
+      </div>
+    </div>
 
-Built Forge Faith out of a conviction that men need more than motivation — they need truth, community, and something worth living for. The podcast is an extension of that mission: one honest conversation a month, right in your truck.
+    <!-- HOST -->
+    <div class="host-section" style="margin-top:5rem;">
+      <p class="section-label">Your Host</p>
+      <div class="host-card">
+        <div class="host-avatar">⚒</div>
+        <div class="host-info">
+          <h3>Forge Faith Studios</h3>
+          <p class="host-title">Forge Faith Nation Founder</p>
+          <p>Built Forge Faith out of a conviction that men need more than motivation — they need truth, community, and something worth living for. The podcast is an extension of that mission: one honest conversation a month, right in your truck.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-Listen Everywhere
+<!-- SUBSCRIBE STRIP -->
+<div class="subscribe-strip">
+  <p class="section-label" style="justify-content:center;">Listen Everywhere</p>
+  <h2 class="section-title">Subscribe when we launch</h2>
+  <div class="podcast-platforms">
+    <a href="#" class="platform-btn"><span class="ico">🎵</span> Apple Podcasts</a>
+    <a href="#" class="platform-btn"><span class="ico">🎧</span> Spotify</a>
+    <a href="#" class="platform-btn"><span class="ico">▶️</span> YouTube</a>
+    <a href="#" class="platform-btn"><span class="ico">🔊</span> Amazon Music</a>
+  </div>
+</div>
 
-Subscribe when we launch
-🎵
-Apple Podcasts
-🎧
-Spotify
-▶️
-YouTube
-🔊
-Amazon Music
-⚒ Forge Faith
-Daily devotions for men of purpose.
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand"><div class="footer-brand-name">⚒ Forge Faith</div><p>Daily devotions for men of purpose.</p></div>
+      <div class="footer-col"><h6>Pages</h6><ul><li><a href="../index.html">Home</a></li><li><a href="devotions.html">Devotions</a></li><li><a href="prayer-wall.html">Prayer Wall</a></li></ul></div>
+      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="#">Privacy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 KDT Investments Inc. · Forge Faith Studios.</p>
+      <p class="footer-verse">"As iron sharpens iron" — Prov 27:17</p>
+    </div>
+  </div>
+</footer>
 
-Pages
-Home
-Devotions
-Prayer Wall
-App
-Download
-Privacy
-© 2026 KDT Investments Inc. · Forge Faith Studios.
-
-"As iron sharpens iron" — Prov 27:17
+<div id="toast"></div>
+<script src="../js/main.js"></script>
+<script>
+function notifySignup() {
+  const email = document.getElementById('notifyEmail').value.trim();
+  if (!email || !email.includes('@')) { showToast('Enter a valid email address.'); return; }
+  document.getElementById('notifyEmail').value = '';
+  showToast('✅ You\'re on the list. We\'ll notify you when Episode 1 drops.');
+}
+</script>
+</body>
+</html>

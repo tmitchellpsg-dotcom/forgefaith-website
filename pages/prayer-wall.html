@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prayer Wall — Forge Faith</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.prayer-layout {
+  display: grid; grid-template-columns: 380px 1fr; gap: 3rem;
+  align-items: start; max-width: 1120px; margin: 0 auto;
+}
+.prayer-form-wrap {
+  background: var(--dark-3); border: 1px solid var(--gold-border);
+  border-radius: 8px; padding: 2rem; position: sticky; top: 88px;
+}
+.prayer-form-wrap h3 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+.prayer-form-wrap p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.7; }
+.char-count { font-size: 0.72rem; color: var(--text-dim); text-align: right; margin-top: 0.25rem; }
+.anonymous-toggle { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.25rem; cursor: pointer; }
+.anonymous-toggle input { accent-color: var(--gold); width: 16px; height: 16px; }
+.anonymous-toggle span { font-size: 0.85rem; color: var(--text-muted); }
+.btn-submit-prayer {
+  width: 100%; background: var(--gold); color: var(--dark); border: none;
+  padding: 0.9rem; border-radius: var(--radius); font-weight: 700;
+  font-size: 0.88rem; letter-spacing: 0.1em; text-transform: uppercase;
+  transition: background 0.2s;
+}
+.btn-submit-prayer:hover { background: var(--gold-light); }
+
+.wall-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+.wall-count { font-size: 0.8rem; color: var(--text-muted); }
+.wall-count span { color: var(--gold); font-weight: 600; }
+
+.prayer-cards { display: flex; flex-direction: column; gap: 1rem; }
+.prayer-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border);
+  border-radius: 6px; padding: 1.5rem;
+  transition: border-color 0.2s;
+}
+.prayer-card:hover { border-color: rgba(201,168,76,0.4); }
+.prayer-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+.prayer-name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+.prayer-category { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); background: var(--gold-dim); padding: 0.2rem 0.6rem; border-radius: 20px; }
+.prayer-date { font-size: 0.72rem; color: var(--text-dim); }
+.prayer-text { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 1.1rem; }
+.pray-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--dark-4); border: 1px solid var(--gold-border);
+  color: var(--text-muted); font-size: 0.78rem; padding: 0.4rem 1rem; border-radius: 20px;
+  cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif;
+}
+.pray-btn:hover, .pray-btn.prayed { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.pray-btn .hand { font-size: 0.9rem; }
+
+.verse-banner {
+  background: var(--dark-3); border: 1px solid var(--gold-border);
+  border-radius: 6px; padding: 1.5rem; margin-bottom: 1.5rem; text-align: center;
+}
+.verse-banner blockquote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1rem; color: var(--text); margin-bottom: 0.4rem; }
+.verse-banner cite { font-size: 0.75rem; color: var(--gold); letter-spacing: 0.1em; }
+
+.category-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.cat-btn {
+  padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid var(--gold-border);
+  background: none; color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.08em; cursor: pointer; transition: 0.2s;
+}
+.cat-btn.active, .cat-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+
+.load-more-btn {
+  width: 100%; margin-top: 1.5rem;
+  background: none; border: 1px solid var(--gold-border); color: var(--text-muted);
+  padding: 0.85rem; border-radius: var(--radius); font-size: 0.85rem; transition: 0.2s;
+}
+.load-more-btn:hover { border-color: var(--gold); color: var(--gold); }
+
+.empty-wall { text-align: center; padding: 3rem; color: var(--text-muted); }
+.empty-wall p:first-child { font-size: 2rem; margin-bottom: 0.5rem; }
+
+@media (max-width: 900px) {
+  .prayer-layout { grid-template-columns: 1fr; }
+  .prayer-form-wrap { position: static; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="nav-logo">⚒ Forge Faith</a>
+  <ul class="nav-links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="devotions.html">Devotions</a></li>
+    <li><a href="prayer-wall.html" class="active">Prayer Wall</a></li>
+    <li><a href="podcast.html">Podcast</a></li>
+    <li><a href="merch.html">Merch</a></li>
+    <li><a href="community.html">Nation</a></li>
+  </ul>
+  <a href="../index.html#download" class="nav-cta">Download App</a>
+  <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a>
+  <a href="devotions.html">Devotions</a>
+  <a href="prayer-wall.html">Prayer Wall</a>
+  <a href="podcast.html">Podcast</a>
+  <a href="merch.html">Merch</a>
+  <a href="community.html">Nation</a>
+  <a href="../index.html#download" class="nav-cta">Download App</a>
+</div>
+
+<section class="page-hero">
+  <p class="hero-eyebrow">Forge Faith Nation</p>
+  <h1>The <em>Prayer Wall</em></h1>
+  <p>Men standing in the gap for one another. Submit your request and let the brotherhood carry it with you.</p>
+</section>
+
+<section style="padding-top:0;">
+  <div class="prayer-layout">
+
+    <!-- FORM -->
+    <div class="prayer-form-wrap">
+      <h3>Submit a Request</h3>
+      <p>Your prayer goes public on the wall unless you choose anonymous. The nation stands with you.</p>
+      <form id="prayerForm">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="prayerName" placeholder="John S." maxlength="40">
+        </div>
+        <label class="anonymous-toggle">
+          <input type="checkbox" id="anonCheck" onchange="toggleAnon()">
+          <span>Post anonymously</span>
+        </label>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="prayerCat">
+            <option value="Family">Family</option>
+            <option value="Health">Health</option>
+            <option value="Work">Work / Career</option>
+            <option value="Faith">Faith Journey</option>
+            <option value="Relationships">Relationships</option>
+            <option value="Finances">Finances</option>
+            <option value="Grief">Grief / Loss</option>
+            <option value="Addiction">Addiction / Recovery</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prayer Request</label>
+          <textarea id="prayerText" rows="5" placeholder="Share what you need the brothers to pray for..." maxlength="400" oninput="updateCount()"></textarea>
+          <div class="char-count"><span id="charCount">0</span>/400</div>
+        </div>
+        <button type="button" class="btn-submit-prayer" onclick="submitPrayer()">🙏 Add to the Wall</button>
+      </form>
+    </div>
+
+    <!-- WALL -->
+    <div>
+      <div class="verse-banner">
+        <blockquote>"Therefore, confess your sins to one another, and pray for one another so that you may be healed."</blockquote>
+        <cite>— James 5:16 (NASB)</cite>
+      </div>
+
+      <div class="wall-header">
+        <div class="wall-count">Standing with <span id="totalCount">0</span> brothers in prayer</div>
+      </div>
+
+      <div class="category-filters">
+        <button class="cat-btn active" onclick="filterCat('All', this)">All</button>
+        <button class="cat-btn" onclick="filterCat('Family', this)">Family</button>
+        <button class="cat-btn" onclick="filterCat('Health', this)">Health</button>
+        <button class="cat-btn" onclick="filterCat('Work', this)">Work</button>
+        <button class="cat-btn" onclick="filterCat('Faith', this)">Faith</button>
+        <button class="cat-btn" onclick="filterCat('Grief', this)">Grief</button>
+        <button class="cat-btn" onclick="filterCat('Other', this)">Other</button>
+      </div>
+
+      <div class="prayer-cards" id="prayerCards"></div>
+      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()" style="display:none;">Load more requests</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand"><div class="footer-brand-name">⚒ Forge Faith</div><p>Daily devotions for men of purpose.</p></div>
+      <div class="footer-col"><h6>Pages</h6><ul><li><a href="../index.html">Home</a></li><li><a href="devotions.html">Devotions</a></li><li><a href="community.html">Nation</a></li></ul></div>
+      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="#">Privacy</a></li></ul></div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 KDT Investments Inc. · Forge Faith Studios.</p>
+      <p class="footer-verse">"Pray for one another" — James 5:16</p>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+<script src="../js/main.js"></script>
+<script>
+const STORAGE_KEY = 'ff_prayers_v1';
+const PRAYED_KEY = 'ff_prayed_v1';
+const PAGE_SIZE = 10;
+let currentCat = 'All';
+let visibleCount = PAGE_SIZE;
+
+const seedPrayers = [
+  { id:'s1', name:'Marcus T.', anon:false, category:'Work', text:'Praying for wisdom as I take on a new leadership role. Need God to guide every decision and keep my pride in check.', date:'June 26, 2026', prays:14 },
+  { id:'s2', name:'Anonymous', anon:true, category:'Family', text:'My marriage has been rough the past few months. Asking for patience, humility, and healing in our home.', date:'June 25, 2026', prays:31 },
+  { id:'s3', name:'Derek W.', anon:false, category:'Health', text:'Going in for surgery next week. Trusting God with the outcome but asking my brothers to cover me in prayer.', date:'June 24, 2026', prays:47 },
+  { id:'s4', name:'James R.', anon:false, category:'Faith', text:'Struggling to feel connected to God right now. Going through a dry season. Need the brothers to pray I don\'t give up.', date:'June 23, 2026', prays:22 },
+  { id:'s5', name:'Anonymous', anon:true, category:'Addiction', text:'15 days sober. Fighting hard every day. Need prayer to stay strong and keep running to God instead of old habits.', date:'June 22, 2026', prays:68 },
+  { id:'s6', name:'Tony M.', anon:false, category:'Finances', text:'Business is struggling. Praying for provision and clarity on what steps to take next. Trying to trust God with this.', date:'June 21, 2026', prays:19 },
+  { id:'s7', name:'Chris B.', anon:false, category:'Grief', text:'Lost my dad two weeks ago. Still processing it. Just need brothers praying I keep my faith through the grief.', date:'June 20, 2026', prays:55 },
+];
+
+function getStoredPrayers() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+}
+function getPrayedList() {
+  try { return JSON.parse(localStorage.getItem(PRAYED_KEY) || '[]'); } catch(e) { return []; }
+}
+function savePrayers(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch(e){} }
+function savePrayed(p) { try { localStorage.setItem(PRAYED_KEY, JSON.stringify(p)); } catch(e){} }
+
+function getAllPrayers() {
+  const stored = getStoredPrayers();
+  return [...stored, ...seedPrayers];
+}
+
+function toggleAnon() {
+  const anon = document.getElementById('anonCheck').checked;
+  document.getElementById('prayerName').disabled = anon;
+  if (anon) document.getElementById('prayerName').value = '';
+}
+
+function updateCount() {
+  const t = document.getElementById('prayerText');
+  document.getElementById('charCount').textContent = t.value.length;
+}
+
+function filterCat(cat, btn) {
+  currentCat = cat; visibleCount = PAGE_SIZE;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderWall();
+}
+
+function submitPrayer() {
+  const anon = document.getElementById('anonCheck').checked;
+  const name = anon ? 'Anonymous' : (document.getElementById('prayerName').value.trim() || 'Anonymous');
+  const cat = document.getElementById('prayerCat').value;
+  const text = document.getElementById('prayerText').value.trim();
+  if (!text) { showToast('Write your prayer request first.'); return; }
+  const prayer = {
+    id: 'u' + Date.now(),
+    name, anon, category: cat, text,
+    date: new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }),
+    prays: 0
+  };
+  const stored = getStoredPrayers();
+  stored.unshift(prayer);
+  savePrayers(stored);
+  document.getElementById('prayerText').value = '';
+  document.getElementById('prayerName').value = '';
+  document.getElementById('anonCheck').checked = false;
+  document.getElementById('prayerName').disabled = false;
+  document.getElementById('charCount').textContent = '0';
+  visibleCount = PAGE_SIZE;
+  renderWall();
+  showToast('🙏 Your request is on the wall. The brothers are praying.');
+}
+
+function prayFor(id) {
+  const prayed = getPrayedList();
+  if (prayed.includes(id)) { showToast('You already prayed for this.'); return; }
+  prayed.push(id);
+  savePrayed(prayed);
+  const stored = getStoredPrayers();
+  const idx = stored.findIndex(p => p.id === id);
+  if (idx >= 0) { stored[idx].prays++; savePrayers(stored); }
+  else {
+    const seed = seedPrayers.find(p => p.id === id);
+    if (seed) seed.prays++;
+  }
+  renderWall();
+  showToast('🙏 Prayed. God hears it.');
+}
+
+function loadMore() { visibleCount += PAGE_SIZE; renderWall(); }
+
+function renderWall() {
+  const all = getAllPrayers();
+  const filtered = currentCat === 'All' ? all : all.filter(p => p.category === currentCat);
+  document.getElementById('totalCount').textContent = all.length;
+  const prayed = getPrayedList();
+  const visible = filtered.slice(0, visibleCount);
+  const cards = document.getElementById('prayerCards');
+  if (filtered.length === 0) {
+    cards.innerHTML = `<div class="empty-wall"><p>🙏</p><p>No requests in this category yet.</p></div>`;
+    document.getElementById('loadMoreBtn').style.display = 'none';
+    return;
+  }
+  cards.innerHTML = visible.map(p => `
+    <div class="prayer-card">
+      <div class="prayer-card-header">
+        <div>
+          <div class="prayer-name">${p.name}</div>
+          <div class="prayer-date">${p.date}</div>
+        </div>
+        <span class="prayer-category">${p.category}</span>
+      </div>
+      <p class="prayer-text">${p.text}</p>
+      <button class="pray-btn ${prayed.includes(p.id)?'prayed':''}" onclick="prayFor('${p.id}')">
+        <span class="hand">🙏</span> ${prayed.includes(p.id) ? 'Prayed' : 'I Prayed for This'} · ${p.prays}
+      </button>
+    </div>
+  `).join('');
+  document.getElementById('loadMoreBtn').style.display = filtered.length > visibleCount ? 'block' : 'none';
+}
+
+renderWall();
+</script>
+</body>
+</html>
