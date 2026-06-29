@@ -8,19 +8,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <style>
-.devotions-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem; margin-top: 3rem;
-}
-.dev-card {
-  background: var(--dark-3); border: 1px solid var(--gold-border);
-  border-radius: 6px; padding: 1.75rem; cursor: pointer;
-  transition: border-color 0.25s, transform 0.25s;
-  display: flex; flex-direction: column;
-}
+.devotions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-top: 3rem; }
+.dev-card { background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; padding: 1.75rem; cursor: pointer; transition: border-color 0.25s, transform 0.25s; display: flex; flex-direction: column; }
 .dev-card:not(.locked):hover { border-color: var(--gold); transform: translateY(-3px); }
 .dev-card.locked { opacity: 0.5; cursor: default; }
-.dev-day { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.6rem; }
+.dev-day { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem; }
+.dev-theme { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem; }
 .dev-card h3 { font-size: 1.2rem; margin-bottom: 0.5rem; }
 .dev-verse { font-size: 0.82rem; color: var(--gold); font-style: italic; opacity: 0.8; margin-bottom: 0.8rem; }
 .dev-preview { font-size: 0.86rem; color: var(--text-muted); line-height: 1.75; flex: 1; }
@@ -28,44 +21,36 @@
 .read-btn { font-size: 0.75rem; color: var(--gold); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem; }
 .read-btn::after { content: '→'; }
 .lock-pill { font-size: 0.72rem; color: var(--text-muted); background: var(--dark-5); padding: 0.3rem 0.75rem; border-radius: 20px; }
-.audio-badge { font-size: 0.68rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.3rem; }
-
-/* filter bar */
+.audio-badge { font-size: 0.68rem; color: var(--text-muted); }
 .filter-bar { display: flex; gap: 0.75rem; margin-top: 2.5rem; flex-wrap: wrap; }
-.filter-btn {
-  padding: 0.45rem 1.1rem; border-radius: 20px;
-  border: 1px solid var(--gold-border); background: none; color: var(--text-muted);
-  font-size: 0.78rem; letter-spacing: 0.08em; cursor: pointer; transition: 0.2s;
-}
+.filter-btn { padding: 0.45rem 1.1rem; border-radius: 20px; border: 1px solid var(--gold-border); background: none; color: var(--text-muted); font-size: 0.78rem; cursor: pointer; transition: 0.2s; }
 .filter-btn.active, .filter-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
-
-/* modal */
-.modal-day-tag { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; }
+.loading-state { text-align: center; padding: 4rem; color: var(--text-muted); grid-column: 1/-1; }
+.loading-spinner { width: 36px; height: 36px; border: 2px solid var(--gold-border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.month-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--gold-dim); border: 1px solid var(--gold-border); padding: 0.4rem 1rem; border-radius: 20px; margin-bottom: 1.5rem; font-size: 0.78rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; }
+.modal-day-tag { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.35rem; }
+.modal-theme-tag { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; }
 .modal h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 0.75rem; }
-.modal-verse-block {
-  border-left: 2px solid var(--gold); padding: 1.1rem 1.5rem;
-  background: var(--gold-dim); border-radius: 0 4px 4px 0; margin-bottom: 2rem;
-}
+.modal-verse-block { border-left: 2px solid var(--gold); padding: 1.1rem 1.5rem; background: var(--gold-dim); border-radius: 0 4px 4px 0; margin-bottom: 2rem; }
 .modal-verse-block p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: var(--text); margin-bottom: 0.3rem; }
-.modal-verse-block span { font-size: 0.8rem; color: var(--gold); letter-spacing: 0.1em; }
+.modal-verse-block span { font-size: 0.8rem; color: var(--gold); }
 .modal-body p { color: var(--text-muted); line-height: 1.95; margin-bottom: 1.25rem; font-size: 0.98rem; }
-.modal-body strong { color: var(--text); }
-.modal-reflection {
-  background: var(--dark-4); border: 1px solid var(--gold-border);
-  border-radius: 4px; padding: 1.25rem 1.5rem; margin-top: 1.5rem;
-}
-.modal-reflection h4 { font-family: 'Inter', sans-serif; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 0.75rem; }
-.modal-reflection ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
-.modal-reflection li { font-size: 0.88rem; color: var(--text-muted); padding-left: 1.1rem; position: relative; }
-.modal-reflection li::before { content: '—'; position: absolute; left: 0; color: var(--gold); }
+.modal-section-title { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); margin: 1.75rem 0 0.75rem; padding-top: 1.5rem; border-top: 1px solid var(--gold-border); }
+.modal-challenge { background: var(--dark-4); border: 1px solid var(--gold-border); border-radius: 4px; padding: 1.25rem 1.5rem; font-size: 0.92rem; color: var(--text-muted); line-height: 1.8; }
+.modal-prayer { background: var(--gold-dim); border: 1px solid var(--gold-border); border-radius: 4px; padding: 1.25rem 1.5rem; font-family: 'Playfair Display', serif; font-style: italic; font-size: 0.95rem; color: var(--text); line-height: 1.85; }
+.modal-audio { margin: 1.5rem 0; padding: 1rem 1.25rem; background: var(--dark-4); border: 1px solid var(--gold-border); border-radius: 4px; }
+.modal-audio audio { width: 100%; accent-color: var(--gold); }
+.modal-audio p { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; }
 .modal-cta-block { margin-top: 2rem; padding-top: 1.75rem; border-top: 1px solid var(--gold-border); text-align: center; }
 .modal-cta-block p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem; }
 </style>
 </head>
 <body>
-
 <nav>
-  <a href="../index.html" class="nav-logo">⚒ Forge Faith</a>
+  <a href="../index.html" class="nav-logo">
+    <img src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2FLogo%201.png?alt=media&token=e19276cf-84e1-498b-b9ab-68963819c25a" alt="Forge Faith" style="height:42px; width:auto; object-fit:contain;">
+  </a>
   <ul class="nav-links">
     <li><a href="../index.html">Home</a></li>
     <li><a href="devotions.html" class="active">Devotions</a></li>
@@ -78,43 +63,44 @@
   <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
 </nav>
 <div class="mobile-menu" id="mobileMenu">
-  <a href="../index.html">Home</a>
-  <a href="devotions.html">Devotions</a>
-  <a href="prayer-wall.html">Prayer Wall</a>
-  <a href="podcast.html">Podcast</a>
-  <a href="merch.html">Merch</a>
-  <a href="community.html">Nation</a>
+  <a href="../index.html">Home</a><a href="devotions.html">Devotions</a>
+  <a href="prayer-wall.html">Prayer Wall</a><a href="podcast.html">Podcast</a>
+  <a href="merch.html">Merch</a><a href="community.html">Nation</a>
   <a href="../index.html#download" class="nav-cta">Download App</a>
 </div>
 
 <section class="page-hero">
-  <p class="hero-eyebrow">14-Day Series</p>
+  <p class="hero-eyebrow">Monthly Series</p>
   <h1>Daily <em>Devotions</em></h1>
-  <p>Scripture-rooted devotions written for real men in real life. Day 1 is free. Go Pro for the full series.</p>
+  <p>A new series every month. Scripture-rooted, written for real men. Day 1 is always free.</p>
 </section>
 
 <section style="padding-top:0;">
   <div class="container">
+    <div class="month-badge" id="monthBadge">📅 Loading current series...</div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterDevotions('all', this)">All Days</button>
-      <button class="filter-btn" onclick="filterDevotions('free', this)">Free</button>
-      <button class="filter-btn" onclick="filterDevotions('pro', this)">Pro</button>
+      <button class="filter-btn active" onclick="filterDevotions('all',this)">All Days</button>
+      <button class="filter-btn" onclick="filterDevotions('free',this)">Free</button>
+      <button class="filter-btn" onclick="filterDevotions('pro',this)">Pro</button>
     </div>
-    <div class="devotions-grid" id="devotionsGrid"></div>
+    <div id="devotionsGrid" class="devotions-grid">
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <p>Loading devotions from Firestore...</p>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- pricing callout -->
 <section style="background:var(--dark-2); padding:4rem 5vw;">
   <div class="container" style="text-align:center; max-width:640px;">
     <p class="section-label" style="justify-content:center;">Go Pro</p>
-    <h2 class="section-title">Unlock all 14 devotions</h2>
-    <p class="section-sub" style="margin:0 auto 2rem;">Monthly at $4.99 or yearly at $34.99. Cancel anytime. Download the app to subscribe.</p>
+    <h2 class="section-title">Unlock the full month</h2>
+    <p class="section-sub" style="margin:0 auto 2rem;">$4.99/month or $34.99/year. Download the app to subscribe.</p>
     <a href="../index.html#download" class="btn-primary">Download & Subscribe</a>
   </div>
 </section>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="devModal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('devModal')">×</button>
@@ -125,100 +111,117 @@
 <footer>
   <div class="footer-inner">
     <div class="footer-grid">
-      <div class="footer-brand">
-        <div class="footer-brand-name">⚒ Forge Faith</div>
-        <p>Daily devotions for men of purpose. Built by Forge Faith Studios.</p>
-      </div>
-      <div class="footer-col"><h6>Pages</h6><ul>
-        <li><a href="../index.html">Home</a></li>
-        <li><a href="prayer-wall.html">Prayer Wall</a></li>
-        <li><a href="podcast.html">Podcast</a></li>
-        <li><a href="merch.html">Merch</a></li>
-      </ul></div>
-      <div class="footer-col"><h6>App</h6><ul>
-        <li><a href="../index.html#download">Download</a></li>
-        <li><a href="#">Privacy Policy</a></li>
-        <li><a href="#">Terms</a></li>
-      </ul></div>
+      <div class="footer-brand"><div class="footer-brand-name">⚒ Forge Faith</div><p>Daily devotions for men of purpose.</p></div>
+      <div class="footer-col"><h6>Pages</h6><ul><li><a href="../index.html">Home</a></li><li><a href="prayer-wall.html">Prayer Wall</a></li><li><a href="podcast.html">Podcast</a></li><li><a href="merch.html">Merch</a></li></ul></div>
+      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="#">Privacy Policy</a></li></ul></div>
     </div>
-    <div class="footer-bottom">
-      <p>© 2026 KDT Investments Inc. · Forge Faith Studios.</p>
-      <p class="footer-verse">"As iron sharpens iron" — Prov 27:17</p>
-    </div>
+    <div class="footer-bottom"><p>© 2026 KDT Investments Inc. · Forge Faith Studios.</p><p class="footer-verse">"As iron sharpens iron" — Prov 27:17</p></div>
   </div>
 </footer>
 
-<script src="../js/main.js"></script>
-<script>
-const devotions = [
-  { day:1, free:true, title:"The Weight of Purpose", ref:"Colossians 3:23", verse:"Whatever you do, do your work heartily, as for the Lord rather than for men.", preview:"Every man carries weight. The question isn't whether you'll carry it — it's whether you'll carry it for something worth the cost.", body:`<p>Every man carries weight. The question isn't whether you'll carry it — it's whether you'll carry it for something worth the cost.</p><p>Paul wrote Colossians from a prison cell. He wasn't writing theory — he was living it. Work heartily. Not because your boss is watching. Not because the pay is good. But because everything you do, every swing of the hammer, every rep, every early morning, every hard decision — it's all done before an audience of One.</p><p>That changes everything. When the job is thankless. When the grind is invisible. When nobody sees the sacrifice. <strong>God does. And that's enough.</strong></p><p>Most men live for the applause of people who won't remember their name in ten years. Paul is calling you to a different standard — one that reframes every ordinary moment as an act of worship.</p>`, questions:["Where in your daily work do you most struggle to stay motivated? What would change if you saw that work as done for God?","What does 'heartily' look like in your current season of life?","Who in your life needs to see you show up with purpose today?"] },
-  { day:2, free:false, title:"Hold the Line", ref:"1 Corinthians 16:13", verse:"Be watchful, stand firm in the faith, act like men, be strong.", preview:"Paul's command isn't a suggestion. Stand firm. Act like men. Be strong. In a world that wants you soft, that's a countercultural battle cry.", body:`<p>Paul's command isn't a suggestion. Stand firm. Act like men. Be strong. In a world that wants you soft, this is a countercultural battle cry.</p><p>Holding the line means you don't drift. You don't compromise what you know is right because the pressure gets heavy. You don't abandon your post because it costs you something. You plant your feet.</p><p>The enemy doesn't announce his attack. He slowly erodes. One small compromise. One skipped morning. One ignored conviction. <strong>That's how men fall — not in one big dramatic moment, but in a thousand small surrenders.</strong></p><p>Hold the line today. Not because it's easy. Because it's right.</p>`, questions:["Where is the enemy eroding your line right now — slowly, quietly?","What's one small surrender you've been making that you need to call what it is?","Who needs to see you stand firm today?"] },
-  { day:3, free:false, title:"Forged in the Fire", ref:"Isaiah 48:10", verse:"Behold, I have refined you, but not as silver; I have tested you in the furnace of affliction.", preview:"Fire doesn't destroy iron — it reveals it. The pressure you're under right now isn't punishment. It's process.", body:`<p>Fire doesn't destroy iron — it reveals it. Burns off the impurity. Leaves behind what's real.</p><p>God told Israel He tested them in the furnace of affliction. Not because He was angry. Because He was working. The same God who spoke the stars into existence is using the hardest season of your life as a forge.</p><p>Elijah burned out, ran scared, and convinced himself he was the last faithful man standing. God didn't condemn him. <strong>He fed him, let him rest, and sent him back.</strong></p><p>Whatever furnace you're in right now — the failing business, the broken marriage, the health scare, the thing you never saw coming — God is not absent from it. He is in it with you.</p>`, questions:["What furnace are you currently in? Have you named it honestly before God?","What impurity might God be burning off in this season?","What does it mean to trust God's process even when you can't see the outcome?"] },
-  { day:4, free:false, title:"The Unshakeable Foundation", ref:"Proverbs 18:10", verse:"The name of the LORD is a strong tower; the righteous runs into it and is safe.", preview:"Every man builds on something. Towers built on anything other than God will eventually come down.", body:`<p>Every man builds on something. His health. His reputation. His hustle. His relationships. And every one of those foundations will eventually crack under enough pressure.</p><p>The strong tower isn't a strategy. It's a Person. <strong>The name of the LORD — His character, His power, His faithfulness — is a refuge you run to, not a philosophy you consider.</strong></p><p>The man who runs into God in the middle of the storm is not weaker for it. He's the smartest man in the room. He found the one thing that doesn't move.</p>`, questions:["What foundation have you been building on that's showing cracks?","What does it practically look like for you to 'run to' God this week?","In what area of your life do you most need the strong tower right now?"] },
-  { day:5, free:false, title:"Lead Like You Mean It", ref:"1 Peter 5:2-3", verse:"Shepherd the flock of God among you… not lording it over those allotted to your charge, but proving to be examples to the flock.", preview:"Real leadership is service before it's authority. Peter knew this firsthand — he failed as a leader before he became one.", body:`<p>Real leadership is service before it's authority. Peter knew this better than anyone. He ran from the garden. He denied Jesus three times. He failed publicly, spectacularly, personally.</p><p>And God still called him to lead. Not in spite of his failure — through it. Because a man who has been humbled leads differently. He doesn't lord it over people. He gets in the dirt with them.</p><p><strong>The greatest leaders in God's kingdom are the ones who lead by example, not by title.</strong> Your wife, your kids, your team, your crew — they're watching what you do, not what you say.</p>`, questions:["Who is God calling you to lead right now that you've been avoiding?","What's the difference between leading from position and leading from example in your context?","Where did you fail as a leader recently? What did you learn?"] },
-  { day:6, free:false, title:"Brothers in Arms", ref:"Ecclesiastes 4:9-10", verse:"Two are better than one because they have a good return for their labor. For if either of them falls, the one will lift up his companion.", preview:"God didn't design you to run alone. The lone wolf looks strong but dies hungry.", body:`<p>God didn't design you to run alone. The lone wolf looks strong but dies hungry. Solomon, the wisest man who ever lived, figured this out — and he wrote it down so we wouldn't have to learn it the hard way. We learn it the hard way anyway.</p><p>Men are stubborn about isolation. We carry it like it's strength. <strong>It's not strength. It's pride with good PR.</strong></p><p>You need men around you who will tell you the truth. Who will show up when it falls apart. Who will pray for you when you have no words left. Find those men. Become that man for someone else.</p>`, questions:["Do you have a man (or men) in your life who knows what's really going on with you?","What's kept you from building or maintaining that kind of brotherhood?","Who could you reach out to this week to go deeper?"] },
-  { day:7, free:false, title:"Tame Your Mouth", ref:"James 3:5", verse:"So also the tongue is a small part of the body, and yet it boasts of great things. See how great a forest is set aflame by such a small fire!", preview:"The most powerful tool on a job site isn't the heaviest equipment. It's the tongue of the man giving the orders.", body:`<p>The most powerful tool on a job site isn't the heaviest equipment. It's the tongue of the man giving orders — or tearing people down with a few careless words.</p><p>James compares the tongue to a spark. You've seen what one spark does. One careless word to your son. One explosion of anger at your wife. One slander of a coworker. You can't take it back. <strong>The forest doesn't regrow overnight.</strong></p><p>The man who controls his words controls his life. And it starts not with the mouth — but with what's filling your heart.</p>`, questions:["What situations consistently pull careless or destructive words out of you?","Who in your life has been damaged by your words that you need to go back to?","What's one practical step you can take this week to slow down before you speak?"] },
-  { day:8, free:false, title:"The Courage to Forgive", ref:"Colossians 3:13", verse:"Bearing with one another, and forgiving each other, whoever has a complaint against anyone; just as the Lord forgave you, so also should you.", preview:"Forgiveness is not weakness. It is the hardest thing a strong man can do.", body:`<p>Forgiveness is not weakness. It is the hardest thing a strong man can do — and the most liberating.</p><p>Unforgiveness is a prison you build for someone else and then move into yourself. You carry it. You pay the rent. The person who wronged you goes on with their life while you haul the weight of it everywhere.</p><p><strong>Paul's argument is simple and devastating: you were forgiven an unpayable debt. You're being asked to forgive a smaller one.</strong> That's not a soft request. That's a command rooted in what God already did for you.</p>`, questions:["Who are you carrying unforgiveness toward right now?","What is that unforgiveness costing you — mentally, spiritually, relationally?","What would it look like to take one step toward forgiveness this week?"] },
-  { day:9, free:false, title:"Provide and Protect", ref:"1 Timothy 5:8", verse:"But if anyone does not provide for his own, and especially for those of his household, he has denied the faith and is worse than an unbeliever.", preview:"Paul isn't giving a career seminar. He's defining a man's basic calling.", body:`<p>Paul isn't giving a career seminar. He's defining a man's basic calling. Provision isn't just financial — it's spiritual, emotional, physical. The man who works hard for money but starves his family of presence has missed the point.</p><p>And the standard is high. Paul calls neglect of your household a denial of faith. Not a mistake. A denial. <strong>What you prioritize with your time and energy is a theological statement about what you actually believe.</strong></p><p>Provide. Protect. Be present. Not perfectly — but intentionally.</p>`, questions:["In what ways are you providing for your household beyond a paycheck?","Where is your presence most needed right now — and are you showing up there?","What does provision and protection look like in your specific season?"] },
-  { day:10, free:false, title:"When Pride Goes Before", ref:"Proverbs 16:18", verse:"Pride goes before destruction, and a haughty spirit before stumbling.", preview:"Every man who has taken a hard fall can trace the path back to pride. It starts small.", body:`<p>Every man who has taken a hard fall can trace the path back to pride. It starts small. You stop listening. You stop asking for help. You start believing the good things people say about you are permanent, and the hard things they say don't apply.</p><p><strong>Pride isn't just arrogance. It's self-sufficiency dressed up as confidence.</strong> It's the belief, deep down, that you've got this — and you don't really need God, or wisdom, or anyone else's input.</p><p>The remedy isn't self-loathing. It's humility. Which is simply an accurate view of yourself: talented, yes; dependent on God, absolutely.</p>`, questions:["Where in your life are you operating in self-sufficiency right now?","When's the last time you genuinely asked someone for help or correction?","What's the difference between confidence and pride in your daily decisions?"] },
-  { day:11, free:false, title:"Finish What You Start", ref:"Philippians 1:6", verse:"For I am confident of this very thing, that He who began a good work in you will perfect it until the day of Christ Jesus.", preview:"You didn't start yourself. God did. And He doesn't leave projects unfinished.", body:`<p>You didn't start yourself. God did. The work He began in you — the faith, the growth, the slow becoming — He is committed to finishing it. That is not a passive promise. It is an active guarantee.</p><p>Paul wrote this to people going through real pressure. And his confidence wasn't in their performance. It was in God's faithfulness. <strong>The God who started the work doesn't walk off the job.</strong></p><p>You might feel unfinished. You are. That's the point. You're mid-construction. Don't mistake the scaffolding for the final structure.</p>`, questions:["What area of your life feels most unfinished right now? How does this verse speak into that?","What would it look like to trust the process instead of trying to control the outcome?","Where has God shown His faithfulness to you in the past that you need to remember today?"] },
-  { day:12, free:false, title:"Raise the Standard", ref:"Deuteronomy 6:6-7", verse:"These words, which I am commanding you today, shall be on your heart. You shall teach them diligently to your sons.", preview:"The most important discipleship you will ever do is in your own home.", body:`<p>The most important discipleship you will ever do is in your own home. Not the church stage, not the conference, not the social media post. The dinner table. The truck ride. The moment your kid falls apart and you choose truth over comfort.</p><p><strong>Moses' command is not to professional clergy — it's to fathers.</strong> You are the primary spiritual leader of your household. That's not pressure to perform. It's a call to be present and intentional.</p><p>You don't have to be a theologian. You have to be a man who loves God out loud, in front of the people who live with you.</p>`, questions:["What does intentional spiritual leadership look like in your home right now?","What's one way you can teach faith to your kids (or invest in a younger man) this week?","What would it mean for the Word to be 'on your heart' before you try to put it in someone else's?"] },
-  { day:13, free:false, title:"Rest Is Not Weakness", ref:"Matthew 11:28-29", verse:"Come to Me, all who are weary and heavy-laden, and I will give you rest. Take My yoke upon you and learn from Me.", preview:"Jesus didn't offer rest to the lazy. He offered it to the weary. There's a difference.", body:`<p>Jesus didn't offer rest to the lazy. He offered it to the weary. There's a difference. The lazy man hasn't worked. The weary man has given everything and is running on empty.</p><p>Men don't stop well. We glorify the grind. We wear exhaustion like a badge. And some of us have confused suffering for sanctification — as if burning out is more holy than being restored.</p><p><strong>Jesus calls rest a yoke. That means it's purposeful, directed, and carries weight — but the weight is right-sized.</strong> Resting in Him isn't quitting. It's refueling for what He actually called you to carry.</p>`, questions:["Where are you running on empty right now, and what's kept you from resting?","What would it look like to practically 'come to Jesus' with your weariness today?","What are you carrying that wasn't yours to carry in the first place?"] },
-  { day:14, free:false, title:"The Long Game", ref:"Galatians 6:9", verse:"Let us not lose heart in doing good, for in due time we will reap if we do not grow weary.", preview:"The most important things you do today won't show results today. Keep going anyway.", body:`<p>The most important things you do today won't show results today. The seed you plant in your kid's heart. The integrity you hold when nobody's watching. The small act of faithfulness in the work God gave you. It doesn't pay out immediately.</p><p>Paul's instruction to not grow weary is not motivational filler. It's a strategic command. <strong>The enemy's best weapon against a faithful man isn't a frontal assault — it's slow, grinding, invisible discouragement.</strong></p><p>You made it fourteen days. That's not an accident. The same God who called you to start is the One promising the harvest. Stay in. Keep going. Play the long game.</p>`, questions:["Where in your life have you been tempted to quit because the results aren't showing up fast enough?","What faithful act do you need to keep doing, even without immediate reward?","As you close this 14-day series — what's one thing God forged in you that you didn't expect?"] },
-];
+<div id="toast"></div>
 
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
+  authDomain: "forge-by-faith-u1c1tx.firebaseapp.com",
+  projectId: "forge-by-faith-u1c1tx",
+  storageBucket: "forge-by-faith-u1c1tx.firebasestorage.app",
+  messagingSenderId: "214263463654",
+  appId: "1:214263463654:web:e5dc76d0c8b42760364527"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+let allDevotions = [];
 let currentFilter = 'all';
-function filterDevotions(filter, btn) {
-  currentFilter = filter;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderGrid();
+
+function isUnlocked(d) {
+  if (d.day_number === 1) return true;
+  if (!d.unlock_date) return false;
+  const unlockDate = d.unlock_date.toDate ? d.unlock_date.toDate() : new Date(d.unlock_date);
+  return new Date() >= unlockDate;
+}
+
+async function loadDevotions() {
+  try {
+    const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'));
+    const snapshot = await getDocs(q);
+    allDevotions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (allDevotions.length === 0) {
+      document.getElementById('devotionsGrid').innerHTML = '<div class="loading-state"><p>📖 Devotions launching soon.</p></div>';
+      return;
+    }
+    const firstDate = allDevotions[0]?.unlock_date?.toDate?.() || new Date();
+    document.getElementById('monthBadge').textContent = '📅 ' + firstDate.toLocaleString('default', { month: 'long', year: 'numeric' }) + ' Series';
+    renderGrid();
+  } catch(err) {
+    console.error(err);
+    document.getElementById('devotionsGrid').innerHTML = '<div class="loading-state"><p>⚠️ Unable to load devotions. Please try again.</p></div>';
+  }
 }
 
 function renderGrid() {
   const grid = document.getElementById('devotionsGrid');
-  const filtered = devotions.filter(d => {
-    if (currentFilter === 'free') return d.free;
-    if (currentFilter === 'pro') return !d.free;
-    return true;
-  });
-  grid.innerHTML = filtered.map(d => `
-    <div class="dev-card ${d.free ? '' : 'locked'}" ${d.free ? `onclick="openDev(${d.day-1})"` : ''}>
-      <p class="dev-day">Day ${d.day}${d.free ? ' · Free' : ' · Pro'}</p>
-      <h3>${d.title}</h3>
-      <p class="dev-verse">"${d.verse.substring(0,60)}…"</p>
-      <p class="dev-preview">${d.preview}</p>
+  let filtered = allDevotions;
+  if (currentFilter === 'free') filtered = allDevotions.filter(d => d.day_number === 1);
+  if (currentFilter === 'pro') filtered = allDevotions.filter(d => d.day_number !== 1);
+  grid.innerHTML = filtered.map(d => {
+    const unlocked = isUnlocked(d);
+    const free = d.day_number === 1;
+    return `<div class="dev-card ${!unlocked ? 'locked' : ''}" ${unlocked ? `onclick="openDev('${d.id}')"` : ''}>
+      <p class="dev-day">Day ${d.day_number}${free ? ' · Free' : ''}</p>
+      ${d.theme ? `<p class="dev-theme">${d.theme}</p>` : ''}
+      <h3>${d.title || 'Untitled'}</h3>
+      ${d.verse_text ? `<p class="dev-verse">"${d.verse_text.substring(0,80)}${d.verse_text.length>80?'…':''}"</p>` : ''}
+      <p class="dev-preview">${(d.body_1||'').substring(0,120)}${(d.body_1||'').length>120?'…':''}</p>
       <div class="dev-footer">
-        ${d.free ? `<span class="read-btn">Read Now</span>` : `<span class="lock-pill">🔒 Pro Required</span>`}
-        <span class="audio-badge">🎧 Audio</span>
+        ${unlocked ? `<span class="read-btn">Read Now</span>` : `<span class="lock-pill">🔒 Pro Required</span>`}
+        ${d.audio_url ? `<span class="audio-badge">🎧 Audio</span>` : ''}
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-function openDev(index) {
-  const d = devotions[index];
+window.filterDevotions = function(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+};
+
+window.openDev = function(id) {
+  const d = allDevotions.find(x => x.id === id);
+  if (!d) return;
   document.getElementById('modalInner').innerHTML = `
-    <p class="modal-day-tag">Day ${d.day} · Free</p>
-    <h2>${d.title}</h2>
+    <p class="modal-day-tag">Day ${d.day_number}${d.day_number===1?' · Free':''}</p>
+    ${d.theme ? `<p class="modal-theme-tag">${d.theme}</p>` : ''}
+    <h2>${d.title||''}</h2>
     <div class="modal-verse-block">
-      <p>"${d.verse}"</p>
-      <span>— ${d.ref} (NASB)</span>
+      <p>"${d.verse_text||''}"</p>
+      <span>— ${d.verse_reference||''} (NASB)</span>
     </div>
-    <div class="modal-body">${d.body}</div>
-    <div class="modal-reflection">
-      <h4>Reflection Questions</h4>
-      <ul>${d.questions.map(q => `<li>${q}</li>`).join('')}</ul>
+    ${d.audio_url ? `<div class="modal-audio"><p>🎧 Listen to this devotion</p><audio controls src="${d.audio_url}"></audio></div>` : ''}
+    <div class="modal-body">
+      ${d.body_1?`<p>${d.body_1}</p>`:''}
+      ${d.body_2?`<p>${d.body_2}</p>`:''}
+      ${d.body_3?`<p>${d.body_3}</p>`:''}
     </div>
+    ${d.life_application?`<p class="modal-section-title">Life Application</p><div class="modal-challenge">${d.life_application}</div>`:''}
+    ${d.challenge?`<p class="modal-section-title">Today's Challenge</p><div class="modal-challenge">${d.challenge}</div>`:''}
+    ${d.prayer?`<p class="modal-section-title">Prayer</p><div class="modal-prayer">${d.prayer}</div>`:''}
     <div class="modal-cta-block">
-      <p>Ready to go deeper? Get the full 14-day series in the app.</p>
+      <p>Want the full series? Download Forge Faith to unlock every devotion.</p>
       <a href="../index.html#download" class="btn-primary" onclick="closeModal('devModal')">Download Forge Faith</a>
-    </div>
-  `;
+    </div>`;
   openModal('devModal');
-}
+};
 
-renderGrid();
+loadDevotions();
 </script>
+<script src="../js/main.js"></script>
 </body>
 </html>
