@@ -139,13 +139,13 @@ nav { background: rgba(8,8,8,0.92) !important; }
 </div>
 
 <section class="page-hero" style="min-height:30vh; padding:6rem 5vw 1rem; background:transparent;">
-  <div id="neonWrap" style="max-width:min(520px,85vw); width:100%; mix-blend-mode: screen; opacity:0;">
+  <div id="neonWrap" style="max-width:min(680px,92vw); width:100%; mix-blend-mode: screen; opacity:0;">
     <img id="neonSign" src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2Fprayer%20wall%20neons.%20.png?alt=media&token=9847dfb3-6bfc-4c40-b732-a0569f2d1eb7" alt="Forge Faith Prayer Wall" style="width:100%; height:auto; display:block;">
   </div>
 </section>
 
 <style>
-/* Neon sign: subtle single flicker-on, then steady — background never touches this animation */
+/* Neon sign: subtle single flicker-on, then continuous gentle ambient flicker forever */
 @keyframes neonFlickerOn {
   0%   { opacity: 0; }
   8%   { opacity: 0.7; }
@@ -157,8 +157,16 @@ nav { background: rgba(8,8,8,0.92) !important; }
   55%  { opacity: 0.9; }
   100% { opacity: 1; }
 }
+@keyframes neonAmbient {
+  0%, 100% { opacity: 1; filter: drop-shadow(0 0 14px rgba(255,180,60,0.25)); }
+  92%      { opacity: 1; filter: drop-shadow(0 0 14px rgba(255,180,60,0.25)); }
+  93%      { opacity: 0.75; filter: drop-shadow(0 0 8px rgba(255,180,60,0.15)); }
+  94%      { opacity: 1; filter: drop-shadow(0 0 16px rgba(255,180,60,0.3)); }
+  96%      { opacity: 0.85; filter: drop-shadow(0 0 10px rgba(255,180,60,0.18)); }
+  97%      { opacity: 1; filter: drop-shadow(0 0 14px rgba(255,180,60,0.25)); }
+}
 #neonWrap { animation: neonFlickerOn 2.6s ease-out 0.2s 1 forwards; }
-#neonWrap.steady-glow { animation: none; opacity: 1; filter: drop-shadow(0 0 14px rgba(255,180,60,0.25)); }
+#neonWrap.steady-glow { animation: neonAmbient 9s ease-in-out infinite; opacity: 1; }
 
 .page-content-fade {
   opacity: 0; transform: translateY(12px);
@@ -171,11 +179,11 @@ nav { background: rgba(8,8,8,0.92) !important; }
 (function() {
   const neon = document.getElementById('neonWrap');
 
-  // Subtle, slow neon crackle — just 3 soft quiet ticks, low volume
+  // Subtle, slow neon crackle on load — just 3 soft quiet ticks, low volume
   function playNeonBuzz() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const flickerBeats = [0.2, 0.55, 0.95]; // matches the slower flicker dips above
+      const flickerBeats = [0.2, 0.55, 0.95];
 
       flickerBeats.forEach(function(t) {
         const start = ctx.currentTime + t;
@@ -204,7 +212,6 @@ nav { background: rgba(8,8,8,0.92) !important; }
         noise.stop(start + dur);
       });
 
-      // very faint low hum, fades quickly
       const humOsc = ctx.createOscillator();
       const humGain = ctx.createGain();
       humOsc.type = 'sine';
