@@ -11,14 +11,15 @@
 /* FULL PAGE BACKGROUND */
 .page-bg {
   position: fixed; inset: 0; z-index: -1;
-  background-image: url('https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2FPrayer%20wall%20background%20brick.png?alt=media&token=ab37f215-3edc-4167-9c56-5128f370d363');
+  background-image: url('https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2Fprayer%20background%20plain.png?alt=media&token=ecfb9379-5728-4d6b-b9f3-41d5397d9b9a');
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 .page-bg::after {
   content: ''; position: absolute; inset: 0;
-  background: rgba(8,8,8,0.75);
+  background: rgba(8,8,8,0.45);
 }
 
 /* override body bg so image shows */
@@ -137,26 +138,27 @@ nav { background: rgba(8,8,8,0.92) !important; }
   <a href="../index.html#download" class="nav-cta">Download App</a>
 </div>
 
-<section class="page-hero" style="min-height:35vh; padding:6rem 5vw 2rem;">
-  <img id="neonSign" src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2Ffinal%20prayer%20wall%20neon.png?alt=media&token=3dc7de74-1d40-446f-9929-557625220770" alt="Forge Faith Nation Prayer Wall" style="max-width:min(600px,90vw); width:100%; height:auto; object-fit:contain;">
+<section class="page-hero" style="min-height:30vh; padding:6rem 5vw 1rem; background:transparent;">
+  <div id="neonWrap" style="max-width:min(520px,85vw); width:100%; mix-blend-mode: screen; opacity:0;">
+    <img id="neonSign" src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2Fprayer%20wall%20neons.%20.png?alt=media&token=9847dfb3-6bfc-4c40-b732-a0569f2d1eb7" alt="Forge Faith Prayer Wall" style="width:100%; height:auto; display:block;">
+  </div>
 </section>
 
 <style>
-/* Neon sign glow-flicker: only the sign graphic flickers, page background never moves */
-@keyframes neonFlicker {
-  0%   { filter: brightness(0.55) drop-shadow(0 0 2px rgba(201,168,76,0.15)); }
-  4%   { filter: brightness(1.3)  drop-shadow(0 0 22px rgba(201,168,76,0.55)); }
-  7%   { filter: brightness(0.5)  drop-shadow(0 0 2px rgba(201,168,76,0.1)); }
-  10%  { filter: brightness(1.25) drop-shadow(0 0 20px rgba(201,168,76,0.5)); }
-  13%  { filter: brightness(0.6)  drop-shadow(0 0 4px rgba(201,168,76,0.15)); }
-  17%  { filter: brightness(1.3)  drop-shadow(0 0 22px rgba(201,168,76,0.55)); }
-  21%  { filter: brightness(0.65) drop-shadow(0 0 6px rgba(201,168,76,0.2)); }
-  25%  { filter: brightness(1.2)  drop-shadow(0 0 18px rgba(201,168,76,0.45)); }
-  30%  { filter: brightness(0.85) drop-shadow(0 0 10px rgba(201,168,76,0.3)); }
-  100% { filter: brightness(1)    drop-shadow(0 0 18px rgba(201,168,76,0.35)); }
+/* Neon sign: subtle single flicker-on, then steady — background never touches this animation */
+@keyframes neonFlickerOn {
+  0%   { opacity: 0; }
+  8%   { opacity: 0.7; }
+  14%  { opacity: 0.15; }
+  20%  { opacity: 0.8; }
+  26%  { opacity: 0.25; }
+  34%  { opacity: 0.85; }
+  45%  { opacity: 0.4; }
+  55%  { opacity: 0.9; }
+  100% { opacity: 1; }
 }
-#neonSign { animation: neonFlicker 2.4s steps(1, end) 1 forwards; }
-#neonSign.steady-glow { animation: none; filter: drop-shadow(0 0 18px rgba(201,168,76,0.35)); }
+#neonWrap { animation: neonFlickerOn 2.6s ease-out 0.2s 1 forwards; }
+#neonWrap.steady-glow { animation: none; opacity: 1; filter: drop-shadow(0 0 14px rgba(255,180,60,0.25)); }
 
 .page-content-fade {
   opacity: 0; transform: translateY(12px);
@@ -167,20 +169,19 @@ nav { background: rgba(8,8,8,0.92) !important; }
 
 <script>
 (function() {
-  const neon = document.getElementById('neonSign');
+  const neon = document.getElementById('neonWrap');
 
-  // Crackly neon-tube buzz: short gated noise/tone bursts timed to flicker beats
+  // Subtle, slow neon crackle — just 3 soft quiet ticks, low volume
   function playNeonBuzz() {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const flickerBeats = [0, 0.10, 0.17, 0.24, 0.31, 0.41, 0.50]; // seconds, matches keyframe stutter points
+      const flickerBeats = [0.2, 0.55, 0.95]; // matches the slower flicker dips above
 
       flickerBeats.forEach(function(t) {
         const start = ctx.currentTime + t;
-        const dur = 0.07 + Math.random() * 0.03;
+        const dur = 0.09 + Math.random() * 0.04;
 
-        // electric "tick" - short filtered noise burst
-        const bufferSize = ctx.sampleRate * dur;
+        const bufferSize = Math.floor(ctx.sampleRate * dur);
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
@@ -190,12 +191,12 @@ nav { background: rgba(8,8,8,0.92) !important; }
 
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.value = 1800 + Math.random() * 800;
-        filter.Q.value = 4;
+        filter.frequency.value = 1400 + Math.random() * 500;
+        filter.Q.value = 5;
 
         const gain = ctx.createGain();
         gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.linearRampToValueAtTime(0.09, start + 0.01);
+        gain.gain.linearRampToValueAtTime(0.025, start + 0.015);
         gain.gain.linearRampToValueAtTime(0.0001, start + dur);
 
         noise.connect(filter).connect(gain).connect(ctx.destination);
@@ -203,17 +204,17 @@ nav { background: rgba(8,8,8,0.92) !important; }
         noise.stop(start + dur);
       });
 
-      // low electrical hum underneath, fades out as sign stabilizes
+      // very faint low hum, fades quickly
       const humOsc = ctx.createOscillator();
       const humGain = ctx.createGain();
-      humOsc.type = 'sawtooth';
-      humOsc.frequency.value = 60;
+      humOsc.type = 'sine';
+      humOsc.frequency.value = 80;
       humGain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      humGain.gain.linearRampToValueAtTime(0.025, ctx.currentTime + 0.05);
-      humGain.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.65);
+      humGain.gain.linearRampToValueAtTime(0.012, ctx.currentTime + 0.1);
+      humGain.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
       humOsc.connect(humGain).connect(ctx.destination);
       humOsc.start();
-      humOsc.stop(ctx.currentTime + 0.7);
+      humOsc.stop(ctx.currentTime + 1.3);
     } catch (e) { /* audio not available, fail silently */ }
   }
 
@@ -224,7 +225,7 @@ nav { background: rgba(8,8,8,0.92) !important; }
       document.querySelectorAll('.page-content-fade').forEach(function(el) {
         el.classList.add('visible');
       });
-    }, 2400);
+    }, 2800);
   });
 })();
 </script>
