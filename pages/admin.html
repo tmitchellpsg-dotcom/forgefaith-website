@@ -1,0 +1,597 @@
+pages/admin.html<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Forge Faith</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body { background: var(--dark); }
+
+/* LOGIN SCREEN */
+#loginScreen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+}
+.login-box {
+  background: var(--dark-3); border: 1px solid var(--gold-border);
+  border-radius: 8px; padding: 2.5rem; max-width: 380px; width: 100%;
+  text-align: center;
+}
+.login-box img { height: 56px; margin-bottom: 1.5rem; }
+.login-box h2 { font-size: 1.4rem; margin-bottom: 0.5rem; }
+.login-box p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.75rem; }
+.login-error { color: #e88; font-size: 0.82rem; margin-top: 0.75rem; display: none; }
+.login-error.show { display: block; }
+
+/* ADMIN SHELL */
+#adminShell { display: none; min-height: 100vh; }
+.admin-topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,8,8,0.96); border-bottom: 1px solid var(--gold-border);
+  padding: 1rem 5vw; display: flex; align-items: center; justify-content: space-between;
+  backdrop-filter: blur(10px);
+}
+.admin-topbar img { height: 34px; }
+.admin-user-info { display: flex; align-items: center; gap: 1rem; font-size: 0.82rem; color: var(--text-muted); }
+.btn-logout {
+  background: none; border: 1px solid var(--gold-border); color: var(--text-muted);
+  padding: 0.45rem 1rem; border-radius: var(--radius); font-size: 0.78rem; cursor: pointer; transition: 0.2s;
+}
+.btn-logout:hover { border-color: var(--gold); color: var(--gold); }
+
+.admin-body { padding: 2rem 5vw 5rem; max-width: 1400px; margin: 0 auto; }
+.admin-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+.admin-header h1 { font-size: 1.9rem; }
+.btn-new-devotion {
+  background: var(--gold); color: var(--dark); border: none;
+  padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 700;
+  font-size: 0.85rem; letter-spacing: 0.05em; cursor: pointer; transition: background 0.2s;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.btn-new-devotion:hover { background: var(--gold-light); }
+
+/* FILTERS */
+.admin-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.admin-filter-btn {
+  padding: 0.45rem 1.1rem; border-radius: 20px; border: 1px solid var(--gold-border);
+  background: var(--dark-3); color: var(--text-muted); font-size: 0.78rem; cursor: pointer; transition: 0.2s;
+}
+.admin-filter-btn.active, .admin-filter-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.admin-filter-divider { width: 1px; background: var(--gold-border); margin: 0 0.4rem; }
+
+/* GRID */
+.admin-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.1rem;
+}
+.devo-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 8px;
+  overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.2s;
+}
+.devo-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.devo-thumb {
+  width: 100%; aspect-ratio: 1/1; background: var(--dark-4);
+  display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+}
+.devo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.devo-thumb .no-img { font-size: 2rem; opacity: 0.3; }
+.devo-day-badge {
+  position: absolute; top: 0.6rem; left: 0.6rem;
+  background: rgba(8,8,8,0.85); color: var(--gold); font-size: 0.7rem; font-weight: 700;
+  padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--gold-border);
+}
+.devo-info { padding: 1rem; }
+.devo-info h4 { font-size: 0.95rem; margin-bottom: 0.6rem; line-height: 1.3; min-height: 2.4em; }
+.devo-status-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.status-pill {
+  font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 10px;
+  display: flex; align-items: center; gap: 0.25rem; font-weight: 600;
+}
+.status-pill.yes { background: rgba(80,180,100,0.15); color: #6ad17f; }
+.status-pill.no { background: rgba(180,80,80,0.15); color: #e88; }
+
+.empty-grid { grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted); }
+.empty-grid p:first-child { font-size: 2.5rem; margin-bottom: 1rem; }
+
+/* EDITOR MODAL */
+.editor-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 500;
+  align-items: flex-start; justify-content: center; padding: 3rem 1.5rem; overflow-y: auto;
+}
+.editor-overlay.open { display: flex; }
+.editor-modal {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 10px;
+  max-width: 760px; width: 100%; padding: 2.5rem; position: relative;
+}
+.editor-close {
+  position: absolute; top: 1.25rem; right: 1.25rem;
+  background: none; border: 1px solid var(--gold-border); color: var(--text-muted);
+  width: 34px; height: 34px; border-radius: 50%; font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; transition: 0.2s;
+}
+.editor-close:hover { border-color: var(--gold); color: var(--gold); }
+.editor-modal h2 { font-size: 1.5rem; margin-bottom: 1.75rem; }
+.editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.editor-row.single { grid-template-columns: 1fr; }
+.editor-upload-preview {
+  width: 100%; aspect-ratio: 16/9; background: var(--dark-4); border: 1px dashed var(--gold-border);
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 0.5rem; overflow: hidden; position: relative;
+}
+.editor-upload-preview img { width: 100%; height: 100%; object-fit: cover; }
+.editor-upload-preview .upload-placeholder { font-size: 0.8rem; color: var(--text-dim); text-align: center; padding: 1rem; }
+.file-input-btn {
+  display: inline-block; background: var(--dark-4); border: 1px solid var(--gold-border);
+  color: var(--text-muted); padding: 0.55rem 1.1rem; border-radius: var(--radius);
+  font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+}
+.file-input-btn:hover { border-color: var(--gold); color: var(--gold); }
+.upload-progress { font-size: 0.75rem; color: var(--gold); margin-top: 0.5rem; display: none; }
+.upload-progress.show { display: block; }
+.editor-actions { display: flex; gap: 0.75rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--gold-border); }
+.btn-save { flex: 1; background: var(--gold); color: var(--dark); border: none; padding: 0.85rem; border-radius: var(--radius); font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: background 0.2s; }
+.btn-save:hover { background: var(--gold-light); }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-delete { background: none; border: 1px solid rgba(220,100,100,0.4); color: #e88; padding: 0.85rem 1.25rem; border-radius: var(--radius); font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+.btn-delete:hover { background: rgba(220,100,100,0.1); }
+
+.audio-current { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; }
+.audio-current audio { width: 100%; margin-top: 0.4rem; }
+
+@media (max-width: 600px) {
+  .editor-row { grid-template-columns: 1fr; }
+  .editor-modal { padding: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <img src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2FLogo%201.png?alt=media&token=e19276cf-84e1-498b-b9ab-68963819c25a" alt="Forge Faith">
+    <h2>Admin Access</h2>
+    <p>Sign in to manage Forge Faith devotions</p>
+    <div class="form-group" style="text-align:left;">
+      <label>Email</label>
+      <input type="email" id="loginEmail" placeholder="you@email.com">
+    </div>
+    <div class="form-group" style="text-align:left;">
+      <label>Password</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn-primary" style="width:100%; border:none; margin-top:0.5rem;" onclick="doLogin()">Sign In</button>
+    <p class="login-error" id="loginError">Invalid email or password.</p>
+  </div>
+</div>
+
+<!-- ADMIN SHELL -->
+<div id="adminShell">
+  <div class="admin-topbar">
+    <img src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2FLogo%201.png?alt=media&token=e19276cf-84e1-498b-b9ab-68963819c25a" alt="Forge Faith">
+    <div class="admin-user-info">
+      <span id="adminUserEmail"></span>
+      <button class="btn-logout" onclick="doLogout()">Log Out</button>
+    </div>
+  </div>
+
+  <div class="admin-body">
+    <div class="admin-header">
+      <h1>Devotions</h1>
+      <button class="btn-new-devotion" onclick="openEditor(null)">+ New Devotion</button>
+    </div>
+
+    <div class="admin-filters" id="statusFilters">
+      <button class="admin-filter-btn active" data-filter="all" onclick="setStatusFilter('all', this)">All</button>
+      <button class="admin-filter-btn" data-filter="published" onclick="setStatusFilter('published', this)">Published</button>
+      <button class="admin-filter-btn" data-filter="missing-audio" onclick="setStatusFilter('missing-audio', this)">Missing Audio</button>
+      <button class="admin-filter-btn" data-filter="missing-image" onclick="setStatusFilter('missing-image', this)">Needs Image</button>
+      <button class="admin-filter-btn" data-filter="missing-challenge" onclick="setStatusFilter('missing-challenge', this)">Needs Challenge</button>
+      <div class="admin-filter-divider"></div>
+      <button class="admin-filter-btn" data-filter="month-current" onclick="setStatusFilter('month-current', this)">This Month</button>
+    </div>
+
+    <div class="admin-grid" id="devoGrid">
+      <div class="empty-grid"><p>⏳</p><p>Loading devotions...</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDITOR MODAL -->
+<div class="editor-overlay" id="editorOverlay">
+  <div class="editor-modal">
+    <button class="editor-close" onclick="closeEditor()">×</button>
+    <h2 id="editorTitle">New Devotion</h2>
+
+    <div class="editor-row">
+      <div class="form-group">
+        <label>Day Number</label>
+        <input type="number" id="f_day_number" placeholder="1">
+      </div>
+      <div class="form-group">
+        <label>Unlock Date</label>
+        <input type="date" id="f_unlock_date">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="f_title" placeholder="The Weight of Purpose">
+    </div>
+
+    <div class="form-group">
+      <label>Theme</label>
+      <input type="text" id="f_theme" placeholder="Purpose & Identity">
+    </div>
+
+    <div class="editor-row">
+      <div class="form-group">
+        <label>Scripture Reference</label>
+        <input type="text" id="f_verse_reference" placeholder="Colossians 3:23">
+      </div>
+      <div class="form-group">
+        <label>&nbsp;</label>
+        <input type="text" id="f_verse_text_short" placeholder="(see full text below)" disabled style="opacity:0.4;">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Scripture Text</label>
+      <textarea id="f_verse_text" rows="2" placeholder="Whatever you do, do your work heartily..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Devotion — Paragraph 1</label>
+      <textarea id="f_body_1" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Devotion — Paragraph 2</label>
+      <textarea id="f_body_2" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Devotion — Paragraph 3</label>
+      <textarea id="f_body_3" rows="3"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Life Application</label>
+      <textarea id="f_life_application" rows="2"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Today's Challenge</label>
+      <textarea id="f_challenge" rows="2"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Prayer</label>
+      <textarea id="f_prayer" rows="2"></textarea>
+    </div>
+
+    <div class="editor-row">
+      <div class="form-group">
+        <label>Devotion Image</label>
+        <div class="editor-upload-preview" id="imagePreviewBox">
+          <span class="upload-placeholder">No image uploaded</span>
+        </div>
+        <label class="file-input-btn">
+          Choose Image
+          <input type="file" id="f_image_file" accept="image/*" style="display:none;" onchange="handleImageSelect(this)">
+        </label>
+        <p class="upload-progress" id="imageUploadProgress">Uploading...</p>
+      </div>
+      <div class="form-group">
+        <label>Devotion Audio</label>
+        <div class="editor-upload-preview" id="audioPreviewBox" style="aspect-ratio:auto; min-height:auto; padding:1.5rem;">
+          <span class="upload-placeholder" id="audioPlaceholderText">No audio uploaded</span>
+        </div>
+        <label class="file-input-btn">
+          Choose Audio
+          <input type="file" id="f_audio_file" accept="audio/*" style="display:none;" onchange="handleAudioSelect(this)">
+        </label>
+        <p class="upload-progress" id="audioUploadProgress">Uploading...</p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>
+        <input type="checkbox" id="f_is_complete" style="width:auto; margin-right:0.5rem; accent-color: var(--gold);">
+        Mark as Published
+      </label>
+    </div>
+
+    <div class="editor-actions">
+      <button class="btn-save" id="saveBtn" onclick="saveDevotion()">Save Devotion</button>
+      <button class="btn-delete" id="deleteBtn" onclick="deleteDevotion()" style="display:none;">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, addDoc, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
+  authDomain: "forge-by-faith-u1c1tx.firebaseapp.com",
+  projectId: "forge-by-faith-u1c1tx",
+  storageBucket: "forge-by-faith-u1c1tx.firebasestorage.app",
+  messagingSenderId: "214263463654",
+  appId: "1:214263463654:web:e5dc76d0c8b42760364527"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+let allDevotions = [];
+let currentEditId = null;
+let pendingImageFile = null;
+let pendingAudioFile = null;
+let statusFilter = 'all';
+
+// ───── AUTH ─────
+window.doLogin = async function() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (err) {
+    errEl.textContent = 'Invalid email or password.';
+    errEl.classList.add('show');
+  }
+};
+
+window.doLogout = async function() {
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminShell').style.display = 'block';
+    document.getElementById('adminUserEmail').textContent = user.email;
+    loadDevotions();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('adminShell').style.display = 'none';
+  }
+});
+
+// ───── LOAD ─────
+async function loadDevotions() {
+  try {
+    const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'));
+    const snapshot = await getDocs(q);
+    allDevotions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderGrid();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('devoGrid').innerHTML = `<div class="empty-grid"><p>⚠️</p><p>Unable to load devotions: ${err.message}</p></div>`;
+  }
+}
+
+window.setStatusFilter = function(filter, btn) {
+  statusFilter = filter;
+  document.querySelectorAll('.admin-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+};
+
+function matchesFilter(d) {
+  switch(statusFilter) {
+    case 'published': return !!d.is_complete;
+    case 'missing-audio': return !d.audio_url;
+    case 'missing-image': return !d.image_url;
+    case 'missing-challenge': return !d.challenge;
+    case 'month-current': {
+      if (!d.unlock_date) return false;
+      const dt = d.unlock_date.toDate ? d.unlock_date.toDate() : new Date(d.unlock_date);
+      const now = new Date();
+      return dt.getMonth() === now.getMonth() && dt.getFullYear() === now.getFullYear();
+    }
+    default: return true;
+  }
+}
+
+function renderGrid() {
+  const grid = document.getElementById('devoGrid');
+  const filtered = allDevotions.filter(matchesFilter);
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-grid"><p>📖</p><p>No devotions match this filter.</p></div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(d => `
+    <div class="devo-card" onclick="openEditor('${d.id}')">
+      <div class="devo-thumb">
+        ${d.image_url ? `<img src="${d.image_url}" loading="lazy">` : `<span class="no-img">📖</span>`}
+        <span class="devo-day-badge">Day ${d.day_number ?? '?'}</span>
+      </div>
+      <div class="devo-info">
+        <h4>${d.title || 'Untitled'}</h4>
+        <div class="devo-status-row">
+          <span class="status-pill ${d.is_complete ? 'yes' : 'no'}">${d.is_complete ? '✅' : '❌'} Published</span>
+          <span class="status-pill ${d.audio_url ? 'yes' : 'no'}">${d.audio_url ? '🎧' : '❌'} Audio</span>
+          <span class="status-pill ${d.image_url ? 'yes' : 'no'}">${d.image_url ? '🖼️' : '❌'} Image</span>
+          <span class="status-pill ${d.challenge ? 'yes' : 'no'}">${d.challenge ? '✅' : '❌'} Challenge</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ───── EDITOR ─────
+window.openEditor = function(id) {
+  currentEditId = id;
+  pendingImageFile = null;
+  pendingAudioFile = null;
+  document.getElementById('imageUploadProgress').classList.remove('show');
+  document.getElementById('audioUploadProgress').classList.remove('show');
+
+  if (id) {
+    const d = allDevotions.find(x => x.id === id);
+    document.getElementById('editorTitle').textContent = 'Edit Devotion — Day ' + (d.day_number ?? '');
+    document.getElementById('f_day_number').value = d.day_number ?? '';
+    document.getElementById('f_unlock_date').value = d.unlock_date ? toDateInputValue(d.unlock_date) : '';
+    document.getElementById('f_title').value = d.title || '';
+    document.getElementById('f_theme').value = d.theme || '';
+    document.getElementById('f_verse_reference').value = d.verse_reference || '';
+    document.getElementById('f_verse_text').value = d.verse_text || '';
+    document.getElementById('f_body_1').value = d.body_1 || '';
+    document.getElementById('f_body_2').value = d.body_2 || '';
+    document.getElementById('f_body_3').value = d.body_3 || '';
+    document.getElementById('f_life_application').value = d.life_application || '';
+    document.getElementById('f_challenge').value = d.challenge || '';
+    document.getElementById('f_prayer').value = d.prayer || '';
+    document.getElementById('f_is_complete').checked = !!d.is_complete;
+    document.getElementById('deleteBtn').style.display = 'inline-block';
+
+    const imgBox = document.getElementById('imagePreviewBox');
+    imgBox.innerHTML = d.image_url ? `<img src="${d.image_url}">` : `<span class="upload-placeholder">No image uploaded</span>`;
+
+    const audioBox = document.getElementById('audioPreviewBox');
+    audioBox.innerHTML = d.audio_url
+      ? `<div style="width:100%;"><span class="upload-placeholder">Current audio:</span><audio controls src="${d.audio_url}" style="width:100%; margin-top:0.5rem;"></audio></div>`
+      : `<span class="upload-placeholder">No audio uploaded</span>`;
+  } else {
+    document.getElementById('editorTitle').textContent = 'New Devotion';
+    ['f_day_number','f_unlock_date','f_title','f_theme','f_verse_reference','f_verse_text','f_body_1','f_body_2','f_body_3','f_life_application','f_challenge','f_prayer'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f_is_complete').checked = false;
+    document.getElementById('deleteBtn').style.display = 'none';
+    document.getElementById('imagePreviewBox').innerHTML = `<span class="upload-placeholder">No image uploaded</span>`;
+    document.getElementById('audioPreviewBox').innerHTML = `<span class="upload-placeholder">No audio uploaded</span>`;
+  }
+  document.getElementById('editorOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeEditor = function() {
+  document.getElementById('editorOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+function toDateInputValue(unlock_date) {
+  const dt = unlock_date.toDate ? unlock_date.toDate() : new Date(unlock_date);
+  const yyyy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+window.handleImageSelect = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  pendingImageFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('imagePreviewBox').innerHTML = `<img src="${e.target.result}">`;
+  };
+  reader.readAsDataURL(file);
+};
+
+window.handleAudioSelect = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  pendingAudioFile = file;
+  document.getElementById('audioPreviewBox').innerHTML = `<span class="upload-placeholder">Selected: ${file.name}</span>`;
+};
+
+window.saveDevotion = async function() {
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    const dayNum = parseInt(document.getElementById('f_day_number').value, 10);
+    const unlockDateVal = document.getElementById('f_unlock_date').value;
+
+    const data = {
+      day_number: isNaN(dayNum) ? 0 : dayNum,
+      title: document.getElementById('f_title').value.trim(),
+      theme: document.getElementById('f_theme').value.trim(),
+      verse_reference: document.getElementById('f_verse_reference').value.trim(),
+      verse_text: document.getElementById('f_verse_text').value.trim(),
+      body_1: document.getElementById('f_body_1').value.trim(),
+      body_2: document.getElementById('f_body_2').value.trim(),
+      body_3: document.getElementById('f_body_3').value.trim(),
+      life_application: document.getElementById('f_life_application').value.trim(),
+      challenge: document.getElementById('f_challenge').value.trim(),
+      prayer: document.getElementById('f_prayer').value.trim(),
+      is_complete: document.getElementById('f_is_complete').checked,
+    };
+
+    if (unlockDateVal) {
+      data.unlock_date = new Date(unlockDateVal + 'T00:00:00');
+    }
+
+    // Upload image if a new one was selected
+    if (pendingImageFile) {
+      document.getElementById('imageUploadProgress').classList.add('show');
+      const imgRef = ref(storage, `devotion_images/day_${data.day_number}_${Date.now()}_${pendingImageFile.name}`);
+      await uploadBytes(imgRef, pendingImageFile);
+      data.image_url = await getDownloadURL(imgRef);
+      document.getElementById('imageUploadProgress').classList.remove('show');
+    } else if (currentEditId) {
+      const existing = allDevotions.find(x => x.id === currentEditId);
+      if (existing && existing.image_url) data.image_url = existing.image_url;
+    }
+
+    // Upload audio if a new one was selected
+    if (pendingAudioFile) {
+      document.getElementById('audioUploadProgress').classList.add('show');
+      const audioRef = ref(storage, `devotion_audio/day_${data.day_number}_${Date.now()}_${pendingAudioFile.name}`);
+      await uploadBytes(audioRef, pendingAudioFile);
+      data.audio_url = await getDownloadURL(audioRef);
+      document.getElementById('audioUploadProgress').classList.remove('show');
+    } else if (currentEditId) {
+      const existing = allDevotions.find(x => x.id === currentEditId);
+      if (existing && existing.audio_url) data.audio_url = existing.audio_url;
+    }
+
+    if (currentEditId) {
+      await setDoc(doc(db, 'devotions', currentEditId), data, { merge: true });
+      showToast('✅ Devotion updated.');
+    } else {
+      await addDoc(collection(db, 'devotions'), data);
+      showToast('✅ Devotion created.');
+    }
+
+    closeEditor();
+    await loadDevotions();
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Error saving: ' + err.message, 5000);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save Devotion';
+  }
+};
+
+window.deleteDevotion = async function() {
+  if (!currentEditId) return;
+  if (!confirm('Delete this devotion permanently? This cannot be undone.')) return;
+  try {
+    await deleteDoc(doc(db, 'devotions', currentEditId));
+    showToast('🗑️ Devotion deleted.');
+    closeEditor();
+    await loadDevotions();
+  } catch (err) {
+    showToast('⚠️ Error deleting: ' + err.message, 5000);
+  }
+};
+</script>
+
+<script src="../js/main.js"></script>
+</body>
+</html>
