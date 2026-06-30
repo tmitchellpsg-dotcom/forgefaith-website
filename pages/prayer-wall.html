@@ -138,10 +138,69 @@ nav { background: rgba(8,8,8,0.92) !important; }
 </div>
 
 <section class="page-hero" style="min-height:35vh; padding:6rem 5vw 2rem;">
-  <img src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2Fprayer-wall%20brick.png?alt=media&token=d9dd7961-5356-4ae5-bd43-3a3d7eee0f9c" alt="Forge Faith Nation Prayer Wall" style="max-width:min(600px,90vw); width:100%; height:auto; object-fit:contain;">
+  <img id="neonSign" src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2Ffinal%20prayer%20wall%20neon.png?alt=media&token=3dc7de74-1d40-446f-9929-557625220770" alt="Forge Faith Nation Prayer Wall" style="max-width:min(600px,90vw); width:100%; height:auto; object-fit:contain; opacity:0;">
 </section>
 
-<section style="padding-top:0;">
+<style>
+@keyframes neonFlicker {
+  0%   { opacity: 0; filter: brightness(0.3); }
+  2%   { opacity: 1; filter: brightness(1.4); }
+  4%   { opacity: 0.2; filter: brightness(0.2); }
+  6%   { opacity: 1; filter: brightness(1.3); }
+  8%   { opacity: 0.3; filter: brightness(0.3); }
+  10%  { opacity: 1; filter: brightness(1.5); }
+  12%  { opacity: 0.4; filter: brightness(0.4); }
+  14%  { opacity: 1; filter: brightness(1.2); }
+  16%  { opacity: 0.15; filter: brightness(0.2); }
+  18%  { opacity: 1; filter: brightness(1.4); }
+  22%  { opacity: 1; filter: brightness(1); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+#neonSign { animation: neonFlicker 2.2s ease-in-out 1 forwards; }
+#neonSign.steady-glow { animation: none; opacity: 1; filter: drop-shadow(0 0 18px rgba(201,168,76,0.35)); }
+
+.page-content-fade {
+  opacity: 0; transform: translateY(12px);
+  transition: opacity 0.9s ease, transform 0.9s ease;
+}
+.page-content-fade.visible { opacity: 1; transform: translateY(0); }
+</style>
+
+<script>
+(function() {
+  const neon = document.getElementById('neonSign');
+
+  function playBuzz() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(120, now);
+      osc.frequency.linearRampToValueAtTime(60, now + 2.0);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.05, now + 0.05);
+      gain.gain.linearRampToValueAtTime(0.0001, now + 2.0);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 2.1);
+    } catch (e) { /* audio not available, fail silently */ }
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    playBuzz();
+    setTimeout(function() {
+      neon.classList.add('steady-glow');
+      document.querySelectorAll('.page-content-fade').forEach(function(el) {
+        el.classList.add('visible');
+      });
+    }, 2200);
+  });
+})();
+</script>
+
+<section style="padding-top:0;" class="page-content-fade">
   <div class="prayer-layout">
 
     <!-- FORM -->
