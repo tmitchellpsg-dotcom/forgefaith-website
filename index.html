@@ -35,10 +35,8 @@
 /* NEON VIDEO LAYER */
 .hero-neon-wrap {
   position: absolute; inset: 0; z-index: 1;
-  pointer-events: none; overflow: hidden;
-}
-.hero-neon-wrap video {
-  width: 100%; height: 100%; object-fit: cover;
+  pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
 }
 .pillars-strip {
   background: var(--dark-2);
@@ -248,15 +246,14 @@
 <!-- ── HERO ── -->
 <section class="home-hero">
   <div class="hero-bg"></div>
-  <!-- NEON VIDEO — blends over background, black areas disappear via screen blend -->
+  <!-- NEON VIDEO — centered on top of background, plays once then freezes -->
   <div class="hero-neon-wrap">
     <video
       id="heroNeon"
       autoplay
       muted
-      loop
       playsinline
-      style="width:100%; height:100%; object-fit:cover; mix-blend-mode:screen; opacity:0; transition: opacity 1.8s ease;"
+      style="mix-blend-mode:screen; opacity:0; transition: opacity 1.5s ease; max-width:min(700px,85vw); width:100%; height:auto;"
     >
       <source src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2F0630.mov?alt=media&token=ebfd970d-c343-401d-9a2f-29529ff9dffc" type="video/mp4">
     </video>
@@ -518,17 +515,34 @@ function notifyAppSignup() {
 }
 </script>
 <script>
-// Fade neon video in smoothly once it starts playing
+// Neon video: fade in, play once, then freeze on last frame
 (function() {
   const vid = document.getElementById('heroNeon');
   if (!vid) return;
+
+  // Fade in once it starts playing
   vid.addEventListener('playing', function() {
     vid.style.opacity = '1';
   });
-  // Fallback — fade in after 1.5s even if play event doesn't fire (mobile)
+
+  // Freeze on last frame when video ends
+  vid.addEventListener('ended', function() {
+    vid.pause();
+    // Stay on last frame — don't loop, don't reset
+  });
+
+  // Fallback fade in for mobile
   setTimeout(function() {
     if (vid.style.opacity !== '1') vid.style.opacity = '1';
   }, 1500);
+
+  // Safety: if video is longer than 2.4s, pause it at 2.4s
+  vid.addEventListener('timeupdate', function() {
+    if (vid.currentTime >= 2.4) {
+      vid.pause();
+      vid.style.opacity = '1';
+    }
+  });
 })();
 </script>
 <script src="js/main.js"></script>
