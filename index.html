@@ -32,12 +32,7 @@
 .hero-pillars-wrap {
   display: none;
 }
-/* NEON VIDEO LAYER */
-.hero-neon-wrap {
-  position: absolute; inset: 0; z-index: 1;
-  pointer-events: none;
-  display: flex; align-items: center; justify-content: center;
-}
+/* NEON VIDEO LAYER - removed */
 .pillars-strip {
   background: var(--dark-2);
   border-top: 1px solid var(--gold-border);
@@ -246,18 +241,6 @@
 <!-- ── HERO ── -->
 <section class="home-hero">
   <div class="hero-bg"></div>
-  <!-- NEON VIDEO — centered on top of background, plays once then freezes -->
-  <div class="hero-neon-wrap">
-    <video
-      id="heroNeon"
-      autoplay
-      muted
-      playsinline
-      style="mix-blend-mode:screen; opacity:0; transition: opacity 1.5s ease; max-width:min(700px,85vw); width:100%; height:auto;"
-    >
-      <source src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2F0630.mov?alt=media&token=ebfd970d-c343-401d-9a2f-29529ff9dffc" type="video/mp4">
-    </video>
-  </div>
   <div class="hero-scroll"><div class="scroll-line"></div>Scroll</div>
 </section>
 
@@ -513,37 +496,6 @@ function notifyAppSignup() {
   closeModal('notifyModal');
   showToast('✅ You\'re on the list. We\'ll email you the moment Forge Faith goes live.');
 }
-</script>
-<script>
-// Neon video: fade in, play once, then freeze on last frame
-(function() {
-  const vid = document.getElementById('heroNeon');
-  if (!vid) return;
-
-  // Fade in once it starts playing
-  vid.addEventListener('playing', function() {
-    vid.style.opacity = '1';
-  });
-
-  // Freeze on last frame when video ends
-  vid.addEventListener('ended', function() {
-    vid.pause();
-    // Stay on last frame — don't loop, don't reset
-  });
-
-  // Fallback fade in for mobile
-  setTimeout(function() {
-    if (vid.style.opacity !== '1') vid.style.opacity = '1';
-  }, 1500);
-
-  // Safety: if video is longer than 2.4s, pause it at 2.4s
-  vid.addEventListener('timeupdate', function() {
-    if (vid.currentTime >= 2.4) {
-      vid.pause();
-      vid.style.opacity = '1';
-    }
-  });
-})();
 </script>
 <script src="js/main.js"></script>
 </body>
