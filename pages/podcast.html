@@ -3,78 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Podcast — Forge Faith</title>
+<title>Merch — Forge Faith</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/style.css">
 <style>
-.coming-soon-banner {
-  background: var(--gold-dim); border: 1px solid var(--gold-border);
-  border-radius: 6px; padding: 1.25rem 2rem; margin-bottom: 3rem;
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+.merch-banner {
+  background: var(--dark-3); border: 1px solid var(--gold-border);
+  border-radius: 6px; padding: 1.5rem 2rem; margin-bottom: 3rem;
+  text-align: center;
 }
-.coming-soon-banner p { font-size: 0.9rem; color: var(--text-muted); }
-.coming-soon-banner strong { color: var(--gold); }
+.merch-banner p { color: var(--text-muted); font-size: 0.9rem; }
+.merch-banner strong { color: var(--gold); }
 
-.episodes-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1.5rem; margin-top: 1rem;
+.merch-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem;
 }
-.episode-card {
-  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; overflow: hidden;
-  transition: border-color 0.2s;
+.merch-card {
+  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px;
+  overflow: hidden; transition: border-color 0.2s, transform 0.2s;
 }
-.episode-card:hover { border-color: var(--gold); }
-.episode-thumb {
-  width: 100%; aspect-ratio: 16/9; background: var(--dark-4); position: relative; overflow: hidden;
-}
-.episode-thumb iframe { width: 100%; height: 100%; border: none; }
-.episode-placeholder {
-  width: 100%; height: 100%; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 0.75rem; text-align: center; padding: 1.5rem;
-}
-.play-icon { font-size: 2.5rem; opacity: 0.3; }
-.episode-placeholder p { font-size: 0.8rem; color: var(--text-dim); }
-.episode-info { padding: 1.5rem; }
-.ep-number { font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
-.episode-info h3 { font-size: 1.15rem; margin-bottom: 0.5rem; }
-.episode-info p { font-size: 0.86rem; color: var(--text-muted); line-height: 1.7; }
-.ep-meta { display: flex; gap: 1rem; margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); }
-
-/* subscribe strip */
-.subscribe-strip {
-  background: var(--dark-2); border-top: 1px solid var(--gold-border); border-bottom: 1px solid var(--gold-border);
-  padding: 3rem 5vw; text-align: center;
-}
-.podcast-platforms { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
-.platform-btn {
-  display: flex; align-items: center; gap: 0.75rem;
-  background: var(--dark-4); border: 1px solid var(--gold-border);
-  padding: 0.75rem 1.5rem; border-radius: 6px; color: var(--text-muted);
-  font-size: 0.85rem; transition: 0.2s;
-}
-.platform-btn:hover { border-color: var(--gold); color: var(--gold); }
-.platform-btn .ico { font-size: 1.25rem; }
-
-.host-section { max-width: 760px; margin: 0 auto; }
-.host-card {
-  background: var(--dark-3); border: 1px solid var(--gold-border); border-radius: 6px; padding: 2rem;
-  display: flex; gap: 2rem; align-items: flex-start; margin-top: 3rem;
-}
-.host-avatar {
-  width: 72px; height: 72px; flex-shrink: 0; background: var(--gold-dim);
-  border: 2px solid var(--gold-border); border-radius: 50%;
+.merch-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+.merch-img {
+  width: 100%; aspect-ratio: 1/1; background: var(--dark-4);
   display: flex; align-items: center; justify-content: center;
-  font-size: 2rem;
+  font-size: 4rem; position: relative;
 }
-.host-info h3 { font-size: 1.2rem; margin-bottom: 0.25rem; }
-.host-info .host-title { font-size: 0.78rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem; }
-.host-info p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.75; }
+.merch-badge {
+  position: absolute; top: 0.75rem; left: 0.75rem;
+  background: var(--gold); color: var(--dark); font-size: 0.65rem;
+  font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 0.25rem 0.65rem; border-radius: 2px;
+}
+.merch-info { padding: 1.25rem; }
+.merch-info h3 { font-size: 1.05rem; margin-bottom: 0.35rem; }
+.merch-info p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.6; }
+.merch-row { display: flex; align-items: center; justify-content: space-between; }
+.merch-price { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--gold); }
+.merch-btn {
+  background: var(--dark-4); border: 1px solid var(--gold-border); color: var(--text-muted);
+  padding: 0.5rem 1rem; border-radius: var(--radius); font-size: 0.78rem; transition: 0.2s;
+}
+.merch-btn:hover { border-color: var(--gold); color: var(--gold); }
+.merch-coming { opacity: 0.45; pointer-events: none; }
 
-.notify-form { max-width: 480px; margin: 2rem auto 0; display: flex; gap: 0.75rem; flex-wrap: wrap; }
-.notify-form input { flex: 1; min-width: 200px; }
-.notify-form button { background: var(--gold); color: var(--dark); border: none; padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
-.notify-form button:hover { background: var(--gold-light); }
+.shop-cta {
+  background: var(--dark-2); border-top: 1px solid var(--gold-border); border-bottom: 1px solid var(--gold-border);
+  padding: 4rem 5vw; text-align: center;
+}
+.shop-note { max-width: 560px; margin: 0 auto; }
+.shop-note p { color: var(--text-muted); font-size: 0.95rem; line-height: 1.85; margin-bottom: 1.75rem; }
+
+.mission-strip { padding: 4rem 5vw; text-align: center; }
+.mission-strip blockquote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3rem; max-width: 640px; margin: 0 auto 0.75rem; }
+.mission-strip cite { font-size: 0.8rem; color: var(--gold); letter-spacing: 0.12em; }
 </style>
 </head>
 <body>
@@ -85,8 +68,8 @@
     <li><a href="../index.html">Home</a></li>
     <li><a href="devotions.html">Devotions</a></li>
     <li><a href="prayer-wall.html">Prayer Wall</a></li>
-    <li><a href="podcast.html" class="active">Podcast</a></li>
-    <li><a href="merch.html">Merch</a></li>
+    <li><a href="podcast.html">Podcast</a></li>
+    <li><a href="merch.html" class="active">Merch</a></li>
     <li><a href="community.html">Nation</a></li>
   </ul>
   <a href="../index.html#download" class="nav-cta">Download App</a>
@@ -103,89 +86,116 @@
 </div>
 
 <section class="page-hero">
-  <p class="hero-eyebrow">Monthly Podcast</p>
-  <h1>Forge Faith <em>Podcast</em></h1>
-  <p>Real conversations for real men. Faith, purpose, leadership, and the grind — once a month, no fluff.</p>
+  <p class="hero-eyebrow">Forge Faith Nation</p>
+  <h1>Wear the <em>Mission</em></h1>
+  <p>Gear built for men who live what they believe. Every purchase supports the mission.</p>
 </section>
 
 <section style="padding-top:0;">
   <div class="container">
-    <div class="coming-soon-banner">
-      <span style="font-size:1.5rem;">🎙️</span>
-      <p><strong>Launching soon.</strong> The Forge Faith Podcast drops monthly. Drop your email below to be the first to know when Episode 1 goes live.</p>
+    <div class="merch-banner">
+      <p><strong>🛒 Full store launching soon.</strong> Click any item to visit our store and get notified when it ships. Powered by Printful — printed on demand, shipped direct.</p>
     </div>
 
-    <!-- NOTIFY SIGNUP -->
-    <div style="text-align:center; margin-bottom:4rem;">
-      <p style="color:var(--text-muted); margin-bottom:0.5rem; font-size:0.9rem;">Get notified when Episode 1 drops</p>
-      <div class="notify-form">
-        <input type="email" placeholder="your@email.com" id="notifyEmail">
-        <button onclick="notifySignup()">Notify Me</button>
-      </div>
-    </div>
-
-    <!-- EPISODES GRID — add YouTube embeds here -->
-    <div id="episodesSection">
-      <p class="section-label">Episodes</p>
-      <h2 class="section-title" style="margin-bottom:2rem;">Coming Soon</h2>
-      <div class="episodes-grid" id="episodesGrid">
-        <!-- PLACEHOLDER EPISODE CARD — replace with real ones -->
-        <div class="episode-card">
-          <div class="episode-thumb">
-            <div class="episode-placeholder">
-              <div class="play-icon">▶</div>
-              <p>Episode 1 drops soon</p>
-            </div>
-          </div>
-          <div class="episode-info">
-            <p class="ep-number">Episode 01</p>
-            <h3>Why Men Need More Than Motivation</h3>
-            <p>In the first episode, we tackle why motivation fails and what actually sustains a man through the long seasons of life.</p>
-            <div class="ep-meta"><span>🎙 Coming soon</span></div>
+    <div class="merch-grid">
+      <!-- ITEM 1 -->
+      <div class="merch-card">
+        <div class="merch-img">
+          👕
+          <span class="merch-badge">Bestseller</span>
+        </div>
+        <div class="merch-info">
+          <h3>Iron Sharpens Iron Tee</h3>
+          <p>Heavy cotton. Prov 27:17 on the back. The Forge Faith mark on the chest. Built to last.</p>
+          <div class="merch-row">
+            <span class="merch-price">$32</span>
+            <a href="#store" class="merch-btn">Shop Now →</a>
           </div>
         </div>
-        <!-- TO ADD A REAL EPISODE: Copy the block below, replace YOUTUBE_ID with the real ID from your YouTube URL -->
-        <!--
-        <div class="episode-card">
-          <div class="episode-thumb">
-            <iframe src="https://www.youtube.com/embed/YOUTUBE_ID" allowfullscreen></iframe>
-          </div>
-          <div class="episode-info">
-            <p class="ep-number">Episode 01</p>
-            <h3>Episode Title Here</h3>
-            <p>Episode description here.</p>
-            <div class="ep-meta"><span>🎙 Month Year</span><span>⏱ XX min</span></div>
+      </div>
+      <!-- ITEM 2 -->
+      <div class="merch-card">
+        <div class="merch-img">🧢</div>
+        <div class="merch-info">
+          <h3>Forge Faith Snapback</h3>
+          <p>Structured front, flat brim. Gold embroidery on black. Worn in the gym or on the job site.</p>
+          <div class="merch-row">
+            <span class="merch-price">$28</span>
+            <a href="#store" class="merch-btn">Shop Now →</a>
           </div>
         </div>
-        -->
       </div>
-    </div>
-
-    <!-- HOST -->
-    <div class="host-section" style="margin-top:5rem;">
-      <p class="section-label">Your Host</p>
-      <div class="host-card">
-        <div class="host-avatar">⚒</div>
-        <div class="host-info">
-          <h3>Forge Faith Studios</h3>
-          <p class="host-title">Forge Faith Nation Founder</p>
-          <p>Built Forge Faith out of a conviction that men need more than motivation — they need truth, community, and something worth living for. The podcast is an extension of that mission: one honest conversation a month, right in your truck.</p>
+      <!-- ITEM 3 -->
+      <div class="merch-card">
+        <div class="merch-img">
+          🏋️
+          <span class="merch-badge">New</span>
+        </div>
+        <div class="merch-info">
+          <h3>Do Your Work Heartily Tank</h3>
+          <p>Col 3:23. Performance fabric. For the man who worships in the weight room and the work site.</p>
+          <div class="merch-row">
+            <span class="merch-price">$26</span>
+            <a href="#store" class="merch-btn">Shop Now →</a>
+          </div>
+        </div>
+      </div>
+      <!-- ITEM 4 -->
+      <div class="merch-card">
+        <div class="merch-img">🧥</div>
+        <div class="merch-info">
+          <h3>Forge Faith Hoodie</h3>
+          <p>Heavyweight pullover. Gold ⚒ on the chest. Stand firm on the back. Made for cold mornings with hot coffee.</p>
+          <div class="merch-row">
+            <span class="merch-price">$58</span>
+            <a href="#store" class="merch-btn">Shop Now →</a>
+          </div>
+        </div>
+      </div>
+      <!-- ITEM 5 -->
+      <div class="merch-card">
+        <div class="merch-img">📔</div>
+        <div class="merch-info">
+          <h3>Forge Faith Journal</h3>
+          <p>160 lined pages. Devotion prompts on the first page of each week. A man's journal built for the daily grind with God.</p>
+          <div class="merch-row">
+            <span class="merch-price">$22</span>
+            <a href="#store" class="merch-btn">Shop Now →</a>
+          </div>
+        </div>
+      </div>
+      <!-- ITEM 6 — coming soon -->
+      <div class="merch-card merch-coming">
+        <div class="merch-img">⚒</div>
+        <div class="merch-info">
+          <h3>Nation Bundle</h3>
+          <p>Tee + Hat + Journal. Everything you need to rep the mission every day.</p>
+          <div class="merch-row">
+            <span class="merch-price">Coming Soon</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- SUBSCRIBE STRIP -->
-<div class="subscribe-strip">
-  <p class="section-label" style="justify-content:center;">Listen Everywhere</p>
-  <h2 class="section-title">Subscribe when we launch</h2>
-  <div class="podcast-platforms">
-    <a href="#" class="platform-btn"><span class="ico">🎵</span> Apple Podcasts</a>
-    <a href="#" class="platform-btn"><span class="ico">🎧</span> Spotify</a>
-    <a href="#" class="platform-btn"><span class="ico">▶️</span> YouTube</a>
-    <a href="#" class="platform-btn"><span class="ico">🔊</span> Amazon Music</a>
+<!-- SHOP CTA -->
+<div class="shop-cta" id="store">
+  <div class="shop-note">
+    <p class="section-label" style="justify-content:center;">Ready to gear up</p>
+    <h2 class="section-title">Full store opening soon</h2>
+    <p>We're setting up the Forge Faith store on Printful — quality gear, printed on demand, no inventory nonsense. When it opens, every order ships directly to your door. Add your email to get 10% off your first order.</p>
+    <div style="display:flex; gap:0.75rem; max-width:440px; margin:0 auto; flex-wrap:wrap;">
+      <input type="email" placeholder="your@email.com" id="merchEmail" style="flex:1; min-width:180px; background:var(--dark-4); border:1px solid var(--gold-border); color:var(--text); padding:0.75rem 1rem; border-radius:var(--radius); font-size:0.95rem; outline:none;">
+      <button onclick="merchSignup()" class="btn-primary">Notify Me</button>
+    </div>
   </div>
+</div>
+
+<!-- MISSION -->
+<div class="mission-strip">
+  <blockquote>"Whatever you do, do your work heartily, as for the Lord rather than for men."</blockquote>
+  <cite>— Colossians 3:23 (NASB)</cite>
 </div>
 
 <footer>
@@ -193,7 +203,7 @@
     <div class="footer-grid">
       <div class="footer-brand"><div class="footer-brand-name">⚒ Forge Faith</div><p>Daily devotions for men of purpose.</p></div>
       <div class="footer-col"><h6>Pages</h6><ul><li><a href="../index.html">Home</a></li><li><a href="devotions.html">Devotions</a></li><li><a href="prayer-wall.html">Prayer Wall</a></li></ul></div>
-      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="#">Privacy</a></li></ul></div>
+      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="privacy.html">Privacy</a></li></ul></div>
     </div>
     <div class="footer-bottom">
       <p>© 2026 KDT Investments Inc. · Forge Faith Studios.</p>
@@ -205,11 +215,11 @@
 <div id="toast"></div>
 <script src="../js/main.js"></script>
 <script>
-function notifySignup() {
-  const email = document.getElementById('notifyEmail').value.trim();
+function merchSignup() {
+  const email = document.getElementById('merchEmail').value.trim();
   if (!email || !email.includes('@')) { showToast('Enter a valid email address.'); return; }
-  document.getElementById('notifyEmail').value = '';
-  showToast('✅ You\'re on the list. We\'ll notify you when Episode 1 drops.');
+  document.getElementById('merchEmail').value = '';
+  showToast('✅ You\'re on the list. 10% off coming your way at launch.');
 }
 </script>
 </body>
