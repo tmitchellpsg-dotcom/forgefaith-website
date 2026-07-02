@@ -32,6 +32,44 @@
 .loading-spinner { width: 36px; height: 36px; border: 2px solid var(--gold-border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .month-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--gold-dim); border: 1px solid var(--gold-border); padding: 0.4rem 1rem; border-radius: 20px; margin-bottom: 1.5rem; font-size: 0.78rem; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; }
+
+/* SERIES BANNER */
+.series-banner {
+  background: linear-gradient(135deg, var(--dark-3) 0%, rgba(201,168,76,0.08) 100%);
+  border: 1px solid var(--gold-border); border-radius: 8px;
+  padding: 2rem 2.5rem; margin-bottom: 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 1.5rem;
+}
+.series-left { display: flex; flex-direction: column; gap: 0.4rem; }
+.series-eyebrow { font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); }
+.series-title { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3rem); color: var(--text); line-height: 1.1; }
+.series-subtitle { font-size: 0.88rem; color: var(--text-muted); max-width: 420px; line-height: 1.7; margin-top: 0.25rem; }
+.series-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; }
+.series-progress-label { font-size: 0.72rem; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.series-months { display: flex; gap: 0.5rem; }
+.series-month-dot {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--gold-border); background: var(--dark-4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.65rem; font-weight: 700; color: var(--text-muted);
+  letter-spacing: 0.05em; text-transform: uppercase; transition: 0.2s;
+  flex-direction: column; gap: 1px;
+}
+.series-month-dot.active {
+  border-color: var(--gold); background: var(--gold);
+  color: var(--dark);
+}
+.series-month-dot.complete {
+  border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.1);
+  color: var(--gold);
+}
+.series-month-dot span { font-size: 0.55rem; opacity: 0.7; }
+.series-next { font-size: 0.78rem; color: var(--text-dim); font-style: italic; }
+@media (max-width: 700px) {
+  .series-banner { flex-direction: column; }
+  .series-right { align-items: flex-start; }
+}
 .modal-day-tag { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.35rem; }
 .modal-theme-tag { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; }
 .modal h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 0.75rem; }
@@ -78,7 +116,26 @@
 
 <section style="padding-top:0;">
   <div class="container">
-    <div class="month-badge" id="monthBadge">📅 Loading current series...</div>
+
+    <!-- SERIES BANNER -->
+    <div class="series-banner" id="seriesBanner">
+      <div class="series-left">
+        <span class="series-eyebrow" id="seriesEyebrow">Month 1 · July 2026</span>
+        <div class="series-title" id="seriesTitle">Forged</div>
+        <p class="series-subtitle" id="seriesSubtitle">Being shaped by God — identity, purpose, and the fire that makes you who you are.</p>
+      </div>
+      <div class="series-right">
+        <span class="series-progress-label">Your Journey</span>
+        <div class="series-months">
+          <div class="series-month-dot active" id="dot1"><span>M1</span>Forged</div>
+          <div class="series-month-dot" id="dot2"><span>M2</span>Stand</div>
+          <div class="series-month-dot" id="dot3"><span>M3</span>Lead</div>
+          <div class="series-month-dot" id="dot4"><span>M4</span>Endure</div>
+        </div>
+        <span class="series-next" id="seriesNext">Next: Stand — August 2026</span>
+      </div>
+    </div>
+
     <div class="filter-bar">
       <button class="filter-btn active" onclick="filterDevotions('all',this)">All Days</button>
       <button class="filter-btn" onclick="filterDevotions('free',this)">Free</button>
@@ -114,7 +171,7 @@
     <div class="footer-grid">
       <div class="footer-brand"><div class="footer-brand-name">⚒ Forge Faith</div><p>Daily devotions for men of purpose.</p></div>
       <div class="footer-col"><h6>Pages</h6><ul><li><a href="../index.html">Home</a></li><li><a href="prayer-wall.html">Prayer Wall</a></li><li><a href="podcast.html">Podcast</a></li><li><a href="merch.html">Merch</a></li></ul></div>
-      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="#">Privacy Policy</a></li></ul></div>
+      <div class="footer-col"><h6>App</h6><ul><li><a href="../index.html#download">Download</a></li><li><a href="privacy.html">Privacy Policy</a></li></ul></div>
     </div>
     <div class="footer-bottom"><p>© 2026 KDT Investments Inc. · Forge Faith Studios.</p><p class="footer-verse">"As iron sharpens iron" — Prov 27:17</p></div>
   </div>
@@ -147,7 +204,49 @@ function isUnlocked(d) {
   return new Date() >= unlockDate;
 }
 
+// Series data — update as you add months
+const SERIES = [
+  { month: 6,  year: 2026, num: 1, name: 'Forged',  subtitle: 'Being shaped by God — identity, purpose, and the fire that makes you who you are.', next: 'Stand — August 2026' },
+  { month: 7,  year: 2026, num: 2, name: 'Stand',   subtitle: 'Conviction, integrity, and the courage to hold your ground when everything pushes back.', next: 'Lead — September 2026' },
+  { month: 8,  year: 2026, num: 3, name: 'Lead',    subtitle: 'Servant leadership — in your home, on your team, and in your community.', next: 'Endure — October 2026' },
+  { month: 9,  year: 2026, num: 4, name: 'Endure',  subtitle: 'The long game. Perseverance, faithfulness, and finishing what God started in you.', next: null },
+];
+
+function updateSeriesBanner() {
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-indexed (6 = July)
+  const currentYear = now.getFullYear();
+  const series = SERIES.find(s => s.month === currentMonth && s.year === currentYear)
+    || SERIES.find(s => (s.year * 12 + s.month) <= (currentYear * 12 + currentMonth))?.let
+    || SERIES[0];
+
+  // Find active series (most recent past or current)
+  let activeSeries = SERIES[0];
+  for (const s of SERIES) {
+    if (s.year < currentYear || (s.year === currentYear && s.month <= currentMonth)) {
+      activeSeries = s;
+    }
+  }
+
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  document.getElementById('seriesEyebrow').textContent = `Month ${activeSeries.num} · ${monthNames[activeSeries.month]} ${activeSeries.year}`;
+  document.getElementById('seriesTitle').textContent = activeSeries.name;
+  document.getElementById('seriesSubtitle').textContent = activeSeries.subtitle;
+  document.getElementById('seriesNext').textContent = activeSeries.next ? `Next: ${activeSeries.next}` : 'You\'ve completed the full series. More coming soon.';
+
+  // Update dots
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    if (!dot) continue;
+    dot.classList.remove('active', 'complete');
+    if (i < activeSeries.num) dot.classList.add('complete');
+    if (i === activeSeries.num) dot.classList.add('active');
+  }
+}
+
 async function loadDevotions() {
+  updateSeriesBanner();
   try {
     const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'));
     const snapshot = await getDocs(q);
