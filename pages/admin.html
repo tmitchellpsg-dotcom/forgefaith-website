@@ -85,13 +85,13 @@ body { background: var(--dark); }
 .csv-summary strong { color: var(--gold); }
 
 /* FILTERS */
-.admin-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
+.admin-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: center; }
 .admin-filter-btn {
   padding: 0.45rem 1.1rem; border-radius: 20px; border: 1px solid var(--gold-border);
   background: var(--dark-3); color: var(--text-muted); font-size: 0.78rem; cursor: pointer; transition: 0.2s;
 }
 .admin-filter-btn.active, .admin-filter-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
-.admin-filter-divider { width: 1px; background: var(--gold-border); margin: 0 0.4rem; }
+.admin-filter-divider { width: 1px; align-self: stretch; background: var(--gold-border); margin: 0 0.4rem; }
 
 /* GRID */
 .admin-grid {
@@ -113,6 +113,14 @@ body { background: var(--dark); }
   position: absolute; top: 0.6rem; left: 0.6rem;
   background: rgba(8,8,8,0.85); color: var(--gold); font-size: 0.7rem; font-weight: 700;
   padding: 0.25rem 0.65rem; border-radius: 20px; border: 1px solid var(--gold-border);
+}
+.devo-month-badge {
+  position: absolute; top: 0.6rem; right: 0.6rem;
+  background: rgba(212,175,55,0.9); color: var(--dark); font-size: 0.65rem; font-weight: 700;
+  padding: 0.25rem 0.6rem; border-radius: 20px;
+}
+.devo-month-badge.missing {
+  background: rgba(220,100,100,0.85); color: #fff;
 }
 .devo-info { padding: 1rem; }
 .devo-info h4 { font-size: 0.95rem; margin-bottom: 0.6rem; line-height: 1.3; min-height: 2.4em; }
@@ -147,6 +155,7 @@ body { background: var(--dark); }
 .editor-modal h2 { font-size: 1.5rem; margin-bottom: 1.75rem; }
 .editor-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .editor-row.single { grid-template-columns: 1fr; }
+.editor-row.triple { grid-template-columns: 1fr 1fr 1fr; }
 .editor-upload-preview {
   width: 100%; aspect-ratio: 16/9; background: var(--dark-4); border: 1px dashed var(--gold-border);
   border-radius: 6px; display: flex; align-items: center; justify-content: center;
@@ -172,8 +181,13 @@ body { background: var(--dark); }
 .audio-current { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; }
 .audio-current audio { width: 100%; margin-top: 0.4rem; }
 
+select.form-select {
+  width: 100%; background: var(--dark-4); border: 1px solid var(--gold-border);
+  color: var(--text); padding: 0.6rem 0.75rem; border-radius: var(--radius); font-size: 0.88rem;
+}
+
 @media (max-width: 600px) {
-  .editor-row { grid-template-columns: 1fr; }
+  .editor-row, .editor-row.triple { grid-template-columns: 1fr; }
   .editor-modal { padding: 1.5rem; }
 }
 </style>
@@ -224,8 +238,11 @@ body { background: var(--dark); }
       <button class="admin-filter-btn" data-filter="missing-audio" onclick="setStatusFilter('missing-audio', this)">Missing Audio</button>
       <button class="admin-filter-btn" data-filter="missing-image" onclick="setStatusFilter('missing-image', this)">Needs Image</button>
       <button class="admin-filter-btn" data-filter="missing-challenge" onclick="setStatusFilter('missing-challenge', this)">Needs Challenge</button>
+      <button class="admin-filter-btn" data-filter="missing-month" onclick="setStatusFilter('missing-month', this)">Missing Month</button>
       <div class="admin-filter-divider"></div>
       <button class="admin-filter-btn" data-filter="month-current" onclick="setStatusFilter('month-current', this)">This Month</button>
+      <div class="admin-filter-divider" id="monthFilterDivider" style="display:none;"></div>
+      <div id="monthFilterButtons" style="display:contents;"></div>
     </div>
 
     <div class="admin-grid" id="devoGrid">
@@ -240,10 +257,28 @@ body { background: var(--dark); }
     <button class="editor-close" onclick="closeEditor()">×</button>
     <h2 id="editorTitle">New Devotion</h2>
 
-    <div class="editor-row">
+    <div class="editor-row triple">
       <div class="form-group">
         <label>Day Number</label>
         <input type="number" id="f_day_number" placeholder="1">
+      </div>
+      <div class="form-group">
+        <label>Month</label>
+        <select id="f_month" class="form-select">
+          <option value="">Select month…</option>
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September">September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+        </select>
       </div>
       <div class="form-group">
         <label>Unlock Date</label>
@@ -357,8 +392,8 @@ body { background: var(--dark); }
         <input type="file" id="csvFileInput" accept=".csv" style="display:none;" onchange="handleCsvFile(this.files[0])">
       </div>
       <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.5rem;">
-        Columns expected (first row = headers, any order):<br>
-        <code style="color:var(--gold); font-size:0.75rem;">day_number, unlock_date, title, theme, verse_reference, verse_text, body_1, body_2, body_3, life_application, challenge, prayer</code>
+        Columns expected (first row = headers, any order). <strong style="color:var(--gold);">month</strong> is required on every row:<br>
+        <code style="color:var(--gold); font-size:0.75rem;">day_number, month, unlock_date, title, theme, verse_reference, verse_text, body_1, body_2, body_3, life_application, challenge, prayer</code>
       </p>
       <span class="csv-template-link" onclick="downloadCsvTemplate()">⬇ Download blank CSV template</span>
     </div>
@@ -397,6 +432,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+const MONTH_ORDER = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 let allDevotions = [];
 let currentEditId = null;
@@ -440,11 +477,39 @@ async function loadDevotions() {
     const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'));
     const snapshot = await getDocs(q);
     allDevotions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderMonthFilters();
     renderGrid();
   } catch (err) {
     console.error(err);
     document.getElementById('devoGrid').innerHTML = `<div class="empty-grid"><p>⚠️</p><p>Unable to load devotions: ${err.message}</p></div>`;
   }
+}
+
+// Build one filter chip per distinct month value actually present in the data, in calendar order
+function renderMonthFilters() {
+  const monthsPresent = [...new Set(allDevotions.map(d => d.month).filter(Boolean))];
+  monthsPresent.sort((a, b) => {
+    const ai = MONTH_ORDER.indexOf(a);
+    const bi = MONTH_ORDER.indexOf(b);
+    if (ai === -1 && bi === -1) return a.localeCompare(b);
+    if (ai === -1) return 1;
+    if (bi === -1) return -1;
+    return ai - bi;
+  });
+
+  const wrap = document.getElementById('monthFilterButtons');
+  const divider = document.getElementById('monthFilterDivider');
+
+  if (monthsPresent.length === 0) {
+    wrap.innerHTML = '';
+    divider.style.display = 'none';
+    return;
+  }
+
+  divider.style.display = 'block';
+  wrap.innerHTML = monthsPresent.map(m => `
+    <button class="admin-filter-btn" data-filter="month:${m}" onclick="setStatusFilter('month:${m}', this)">${m}</button>
+  `).join('');
 }
 
 window.setStatusFilter = function(filter, btn) {
@@ -455,11 +520,16 @@ window.setStatusFilter = function(filter, btn) {
 };
 
 function matchesFilter(d) {
+  if (statusFilter.startsWith('month:')) {
+    const wanted = statusFilter.slice(6);
+    return d.month === wanted;
+  }
   switch(statusFilter) {
     case 'published': return !!d.is_complete;
     case 'missing-audio': return !d.audio_url;
     case 'missing-image': return !d.image_url;
     case 'missing-challenge': return !d.challenge;
+    case 'missing-month': return !d.month;
     case 'month-current': {
       if (!d.unlock_date) return false;
       const dt = d.unlock_date.toDate ? d.unlock_date.toDate() : new Date(d.unlock_date);
@@ -482,6 +552,7 @@ function renderGrid() {
       <div class="devo-thumb">
         ${d.image_url ? `<img src="${d.image_url}" loading="lazy">` : `<span class="no-img">📖</span>`}
         <span class="devo-day-badge">Day ${d.day_number ?? '?'}</span>
+        <span class="devo-month-badge ${d.month ? '' : 'missing'}">${d.month || 'No month'}</span>
       </div>
       <div class="devo-info">
         <h4>${d.title || 'Untitled'}</h4>
@@ -508,6 +579,7 @@ window.openEditor = function(id) {
     const d = allDevotions.find(x => x.id === id);
     document.getElementById('editorTitle').textContent = 'Edit Devotion — Day ' + (d.day_number ?? '');
     document.getElementById('f_day_number').value = d.day_number ?? '';
+    document.getElementById('f_month').value = d.month || '';
     document.getElementById('f_unlock_date').value = d.unlock_date ? toDateInputValue(d.unlock_date) : '';
     document.getElementById('f_title').value = d.title || '';
     document.getElementById('f_theme').value = d.theme || '';
@@ -532,6 +604,7 @@ window.openEditor = function(id) {
   } else {
     document.getElementById('editorTitle').textContent = 'New Devotion';
     ['f_day_number','f_unlock_date','f_title','f_theme','f_verse_reference','f_verse_text','f_body_1','f_body_2','f_body_3','f_life_application','f_challenge','f_prayer'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f_month').value = '';
     document.getElementById('f_is_complete').checked = false;
     document.getElementById('deleteBtn').style.display = 'none';
     document.getElementById('imagePreviewBox').innerHTML = `<span class="upload-placeholder">No image uploaded</span>`;
@@ -573,6 +646,13 @@ window.handleAudioSelect = function(input) {
 };
 
 window.saveDevotion = async function() {
+  const monthVal = document.getElementById('f_month').value;
+  if (!monthVal) {
+    showToast('⚠️ Please select a month before saving.', 4000);
+    document.getElementById('f_month').focus();
+    return;
+  }
+
   const saveBtn = document.getElementById('saveBtn');
   saveBtn.disabled = true;
   saveBtn.textContent = 'Saving...';
@@ -583,6 +663,7 @@ window.saveDevotion = async function() {
 
     const data = {
       day_number: isNaN(dayNum) ? 0 : dayNum,
+      month: monthVal,
       title: document.getElementById('f_title').value.trim(),
       theme: document.getElementById('f_theme').value.trim(),
       verse_reference: document.getElementById('f_verse_reference').value.trim(),
@@ -657,7 +738,7 @@ window.deleteDevotion = async function() {
 };
 
 // ───── CSV BULK IMPORT ─────
-const CSV_COLUMNS = ['day_number','unlock_date','title','theme','verse_reference','verse_text','body_1','body_2','body_3','life_application','challenge','prayer'];
+const CSV_COLUMNS = ['day_number','month','unlock_date','title','theme','verse_reference','verse_text','body_1','body_2','body_3','life_application','challenge','prayer'];
 let parsedCsvRows = [];
 
 window.openCsvModal = function() {
@@ -680,7 +761,7 @@ window.resetCsvModal = function() {
 
 window.downloadCsvTemplate = function() {
   const headerRow = CSV_COLUMNS.join(',');
-  const exampleRow = '1,2026-07-01,"The Weight of Purpose","Purpose & Identity","Colossians 3:23","Whatever you do, do your work heartily, as for the Lord.","Paragraph one text here.","Paragraph two text here.","Paragraph three text here.","Apply this today by...","Today, do this specific thing.","Lord, help me..."';
+  const exampleRow = '1,September,2026-09-01,"The Weight of Purpose","Purpose & Identity","Colossians 3:23","Whatever you do, do your work heartily, as for the Lord.","Paragraph one text here.","Paragraph two text here.","Paragraph three text here.","Apply this today by...","Today, do this specific thing.","Lord, help me..."';
   const csvContent = headerRow + '\n' + exampleRow;
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -738,6 +819,7 @@ window.handleCsvFile = function(file) {
         });
 
         if (!obj.day_number || isNaN(parseInt(obj.day_number, 10))) obj._errors.push('Missing/invalid day_number');
+        if (!obj.month) obj._errors.push('Missing month');
         if (!obj.title) obj._errors.push('Missing title');
         if (obj.unlock_date && isNaN(new Date(obj.unlock_date).getTime())) obj._errors.push('Invalid unlock_date (use YYYY-MM-DD)');
 
@@ -763,13 +845,14 @@ function renderCsvPreview() {
   const table = document.getElementById('csvPreviewTable');
   table.innerHTML = `
     <thead><tr>
-      <th>Row</th><th>Day</th><th>Title</th><th>Unlock Date</th><th>Status</th>
+      <th>Row</th><th>Day</th><th>Month</th><th>Title</th><th>Unlock Date</th><th>Status</th>
     </tr></thead>
     <tbody>
       ${parsedCsvRows.map(r => `
         <tr class="${r._errors.length ? 'csv-row-error' : ''}">
           <td>${r._rowNum}</td>
           <td>${r.day_number || '—'}</td>
+          <td>${r.month || '—'}</td>
           <td>${r.title || '—'}</td>
           <td>${r.unlock_date || '—'}</td>
           <td>${r._errors.length ? '⚠️ ' + r._errors.join('; ') : '✅ Ready'}</td>
@@ -798,6 +881,7 @@ window.importCsvRows = async function() {
     try {
       const data = {
         day_number: parseInt(r.day_number, 10),
+        month: r.month || '',
         title: r.title || '',
         theme: r.theme || '',
         verse_reference: r.verse_reference || '',
