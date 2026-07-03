@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Forge Faith — Month Tagger</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --gold: #d4af37;
+    --gold-bright: #f2c94c;
+    --bg: #0a0a0a;
+    --card-bg: #151515;
+    --border: #2a2a2a;
+    --text: #f0f0f0;
+    --text-dim: #999;
+    --red: #e74c3c;
+    --green: #2ecc71;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #000;
+    border-bottom: 1px solid var(--gold);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  header h1 {
+    color: var(--gold);
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: 0.5px;
+  }
+  header .sub {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px;
+  }
+  #login-box {
+    max-width: 380px;
+    margin: 80px auto;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+  }
+  #login-box h2 {
+    color: var(--gold);
+    margin-top: 0;
+  }
+  #login-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #1c1c1c;
+    color: var(--text);
+    font-size: 14px;
+  }
+  #login-box button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    background: var(--gold);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  #login-box button:hover { background: var(--gold-bright); }
+  #login-error { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 16px; }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .stats {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .stats span b { color: var(--gold); }
+  .filter-buttons { display: flex; gap: 8px; }
+  .filter-buttons button {
+    background: #1c1c1c;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .filter-buttons button.active {
+    background: var(--gold);
+    color: #000;
+    border-color: var(--gold);
+    font-weight: 700;
+  }
+
+  #loading { text-align: center; padding: 60px; color: var(--text-dim); }
+
+  .devo-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .devo-card.tagged { border-color: var(--green); }
+  .devo-day {
+    min-width: 56px;
+    text-align: center;
+    background: #1c1c1c;
+    border-radius: 8px;
+    padding: 8px 0;
+    font-weight: 700;
+    color: var(--gold);
+    font-size: 14px;
+  }
+  .devo-info { flex: 1; min-width: 0; }
+  .devo-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .devo-meta { font-size: 12px; color: var(--text-dim); }
+  .devo-body-snippet {
+    font-size: 12px;
+    color: #777;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 500px;
+  }
+  .month-tag {
+    display: inline-block;
+    background: var(--green);
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-left: 8px;
+  }
+  .month-buttons { display: flex; gap: 6px; }
+  .month-buttons button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #1c1c1c;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .month-buttons button:hover { border-color: var(--gold); }
+  .month-buttons button.selected {
+    background: var(--gold);
+    color: #000;
+    font-weight: 700;
+    border-color: var(--gold);
+  }
+  .custom-month-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .custom-month-row input {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #1c1c1c;
+    color: var(--text);
+    font-size: 12px;
+    width: 120px;
+  }
+  .custom-month-row button {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: #1c1c1c;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green);
+    color: #000;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--red); color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Month Tagger</h1>
+    <div class="sub">One-time tool to tag existing devotions with their month</div>
+  </div>
+  <div id="user-info" style="color:var(--text-dim); font-size:13px;"></div>
+</header>
+
+<div id="login-box">
+  <h2>Admin Login</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Log In</button>
+  <div id="login-error"></div>
+</div>
+
+<div class="container" id="app-container" style="display:none;">
+  <div class="toolbar">
+    <div class="stats">
+      <span>Total: <b id="stat-total">0</b></span>
+      <span>Tagged: <b id="stat-tagged">0</b></span>
+      <span>Untagged: <b id="stat-untagged">0</b></span>
+    </div>
+    <div class="filter-buttons" id="filter-buttons">
+      <button class="active" data-filter="all">All</button>
+      <button data-filter="untagged">Untagged</button>
+    </div>
+  </div>
+  <div id="loading">Loading devotions...</div>
+  <div id="devo-list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
+    authDomain: "forge-by-faith-u1c1tx.firebaseapp.com",
+    projectId: "forge-by-faith-u1c1tx",
+    storageBucket: "forge-by-faith-u1c1tx.firebasestorage.app",
+    messagingSenderId: "214263463654",
+    appId: "1:214263463654:web:e5dc76d0c8b42760364527"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let allDevotions = [];
+  let currentFilter = 'all';
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { t.className = 'toast'; }, 2200);
+  }
+
+  function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+
+    if (!email || !password) {
+      errEl.textContent = 'Enter your email and password.';
+      return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+      .catch(err => {
+        errEl.textContent = 'Login failed: ' + err.message;
+      });
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('app-container').style.display = 'block';
+      document.getElementById('user-info').textContent = user.email;
+      loadDevotions();
+    } else {
+      document.getElementById('login-box').style.display = 'block';
+      document.getElementById('app-container').style.display = 'none';
+    }
+  });
+
+  async function loadDevotions() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('devo-list').innerHTML = '';
+
+    try {
+      const snapshot = await db.collection('devotions').orderBy('day_number', 'asc').get();
+      allDevotions = [];
+      snapshot.forEach(doc => {
+        allDevotions.push({ id: doc.id, ...doc.data() });
+      });
+      document.getElementById('loading').style.display = 'none';
+      renderList();
+    } catch (err) {
+      document.getElementById('loading').textContent = 'Error loading devotions: ' + err.message;
+    }
+  }
+
+  function updateStats() {
+    const total = allDevotions.length;
+    const tagged = allDevotions.filter(d => d.month && d.month.trim() !== '').length;
+    document.getElementById('stat-total').textContent = total;
+    document.getElementById('stat-tagged').textContent = tagged;
+    document.getElementById('stat-untagged').textContent = total - tagged;
+  }
+
+  function renderList() {
+    updateStats();
+    const list = document.getElementById('devo-list');
+    list.innerHTML = '';
+
+    let items = allDevotions;
+    if (currentFilter === 'untagged') {
+      items = items.filter(d => !d.month || d.month.trim() === '');
+    }
+
+    if (items.length === 0) {
+      list.innerHTML = '<div style="text-align:center; color:var(--text-dim); padding:40px;">Nothing to show here.</div>';
+      return;
+    }
+
+    items.forEach(devo => {
+      const card = document.createElement('div');
+      card.className = 'devo-card' + (devo.month ? ' tagged' : '');
+      card.id = 'card-' + devo.id;
+
+      const bodySnippet = devo.body_1 ? devo.body_1.substring(0, 90) + '...' : '(no body text)';
+      const hasImage = devo.image_url ? '🖼️' : '';
+      const hasAudio = devo.audio_url ? '🎧' : '';
+
+      card.innerHTML = `
+        <div class="devo-day">Day ${devo.day_number ?? '?'}</div>
+        <div class="devo-info">
+          <div class="devo-title">
+            ${devo.title || '(untitled)'} ${hasImage} ${hasAudio}
+            ${devo.month ? `<span class="month-tag">${devo.month}</span>` : ''}
+          </div>
+          <div class="devo-meta">${devo.theme || ''} ${devo.verse_reference ? '· ' + devo.verse_reference : ''}</div>
+          <div class="devo-body-snippet">${bodySnippet}</div>
+        </div>
+        <div class="month-buttons" id="btns-${devo.id}">
+          <button data-month="July" class="${devo.month === 'July' ? 'selected' : ''}">July</button>
+          <button data-month="August" class="${devo.month === 'August' ? 'selected' : ''}">August</button>
+        </div>
+      `;
+
+      list.appendChild(card);
+
+      const btnRow = card.querySelector(`#btns-${devo.id}`);
+      btnRow.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => tagMonth(devo.id, btn.dataset.month));
+      });
+    });
+  }
+
+  async function tagMonth(docId, month) {
+    try {
+      await db.collection('devotions').doc(docId).update({ month: month });
+      const devo = allDevotions.find(d => d.id === docId);
+      if (devo) devo.month = month;
+      showToast(`Tagged as ${month}`);
+      renderList();
+    } catch (err) {
+      showToast('Failed to save: ' + err.message, true);
+    }
+  }
+
+  document.getElementById('filter-buttons').addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON') return;
+    document.querySelectorAll('#filter-buttons button').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.dataset.filter;
+    renderList();
+  });
+</script>
+
+</body>
+</html>
