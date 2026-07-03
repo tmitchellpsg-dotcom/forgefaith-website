@@ -197,11 +197,11 @@ const db = getFirestore(app);
 let allDevotions = [];
 let currentFilter = 'all';
 
+// Website only ever unlocks Day 1 as a free preview.
+// Every other day requires the app (Pro subscription) — intentionally not date-based,
+// so older content doesn't silently become free over time.
 function isUnlocked(d) {
-  if (d.day_number === 1) return true;
-  if (!d.unlock_date) return false;
-  const unlockDate = d.unlock_date.toDate ? d.unlock_date.toDate() : new Date(d.unlock_date);
-  return new Date() >= unlockDate;
+  return d.day_number === 1;
 }
 
 // Series data — update as you add months
@@ -216,9 +216,6 @@ function updateSeriesBanner() {
   const now = new Date();
   const currentMonth = now.getMonth(); // 0-indexed (6 = July)
   const currentYear = now.getFullYear();
-  const series = SERIES.find(s => s.month === currentMonth && s.year === currentYear)
-    || SERIES.find(s => (s.year * 12 + s.month) <= (currentYear * 12 + currentMonth))?.let
-    || SERIES[0];
 
   // Find active series (most recent past or current)
   let activeSeries = SERIES[0];
@@ -255,8 +252,6 @@ async function loadDevotions() {
       document.getElementById('devotionsGrid').innerHTML = '<div class="loading-state"><p>📖 Devotions launching soon.</p></div>';
       return;
     }
-    const firstDate = allDevotions[0]?.unlock_date?.toDate?.() || new Date();
-    document.getElementById('monthBadge').textContent = '📅 ' + firstDate.toLocaleString('default', { month: 'long', year: 'numeric' }) + ' Series';
     renderGrid();
   } catch(err) {
     console.error(err);
@@ -301,6 +296,7 @@ window.filterDevotions = function(filter, btn) {
 window.openDev = function(id) {
   const d = allDevotions.find(x => x.id === id);
   if (!d) return;
+  if (!isUnlocked(d)) return; // safety net — locked days never open, even if clicked programmatically
   document.getElementById('modalInner').innerHTML = `
     ${d.image_url ? `<img src="${d.image_url}" alt="${d.title||''}" style="width:100%; border-radius:4px; margin-bottom:1.5rem; object-fit:cover; max-height:240px;">` : ''}
     <p class="modal-day-tag">Day ${d.day_number}${d.day_number===1?' · Free':''}</p>
