@@ -46,8 +46,10 @@ nav { background: rgba(8,8,8,0.92) !important; }
   width: 100%; background: var(--gold); color: var(--dark); border: none;
   padding: 0.9rem; border-radius: var(--radius); font-weight: 700;
   font-size: 0.88rem; letter-spacing: 0.1em; text-transform: uppercase; transition: background 0.2s;
+  cursor: pointer;
 }
 .btn-submit-prayer:hover { background: var(--gold-light); }
+.btn-submit-prayer:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .wall-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
 .wall-count { font-size: 0.8rem; color: var(--text-muted); }
@@ -72,6 +74,7 @@ nav { background: rgba(8,8,8,0.92) !important; }
   cursor: pointer; transition: 0.2s; font-family: 'Inter', sans-serif;
 }
 .pray-btn:hover, .pray-btn.prayed { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.pray-btn:disabled { cursor: default; }
 
 .verse-banner {
   background: rgba(18,18,18,0.88); border: 1px solid var(--gold-border);
@@ -271,7 +274,7 @@ nav { background: rgba(8,8,8,0.92) !important; }
         <textarea id="prayerText" rows="5" placeholder="Share what you need the brothers to pray for..." maxlength="400" oninput="updateCount()"></textarea>
         <div class="char-count"><span id="charCount">0</span>/400</div>
       </div>
-      <button type="button" class="btn-submit-prayer" onclick="submitPrayer()">🙏 Add to the Wall</button>
+      <button type="button" class="btn-submit-prayer" id="submitBtn" onclick="submitPrayer()">🙏 Add to the Wall</button>
     </div>
 
     <!-- WALL -->
@@ -297,8 +300,8 @@ nav { background: rgba(8,8,8,0.92) !important; }
 
       <div class="prayer-cards" id="prayerCards">
         <div class="empty-wall">
-          <p>🙏</p>
-          <p>Be the first to add a prayer request. The brothers are ready to stand with you.</p>
+          <p>⏳</p>
+          <p>Loading prayer requests...</p>
         </div>
       </div>
       <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()" style="display:none;">Load more requests</button>
@@ -322,83 +325,141 @@ nav { background: rgba(8,8,8,0.92) !important; }
 
 <div id="toast"></div>
 <script src="../js/main.js"></script>
-<script>
-const STORAGE_KEY = 'ff_prayers_v2';
-const PRAYED_KEY = 'ff_prayed_v2';
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getFirestore, collection, addDoc, getDocs, query, orderBy,
+  doc, updateDoc, increment, serverTimestamp
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
+  authDomain: "forge-by-faith-u1c1tx.firebaseapp.com",
+  projectId: "forge-by-faith-u1c1tx",
+  storageBucket: "forge-by-faith-u1c1tx.firebasestorage.app",
+  messagingSenderId: "214263463654",
+  appId: "1:214263463654:web:e5dc76d0c8b42760364527"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const PRAYED_KEY = 'ff_prayed_v3'; // per-device "already tapped I Prayed" list — this alone can stay local
 const PAGE_SIZE = 10;
+
+let allPrayers = [];
 let currentCat = 'All';
 let visibleCount = PAGE_SIZE;
 
-function getStoredPrayers() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
-}
 function getPrayedList() {
   try { return JSON.parse(localStorage.getItem(PRAYED_KEY) || '[]'); } catch(e) { return []; }
 }
-function savePrayers(p) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch(e){} }
 function savePrayed(p) { try { localStorage.setItem(PRAYED_KEY, JSON.stringify(p)); } catch(e){} }
 
-function getAllPrayers() { return getStoredPrayers(); }
-
-function toggleAnon() {
+window.toggleAnon = function() {
   const anon = document.getElementById('anonCheck').checked;
   document.getElementById('prayerName').disabled = anon;
   if (anon) document.getElementById('prayerName').value = '';
-}
+};
 
-function updateCount() {
+window.updateCount = function() {
   document.getElementById('charCount').textContent = document.getElementById('prayerText').value.length;
-}
+};
 
-function filterCat(cat, btn) {
+window.filterCat = function(cat, btn) {
   currentCat = cat; visibleCount = PAGE_SIZE;
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderWall();
-}
+};
 
-function submitPrayer() {
+window.submitPrayer = async function() {
+  const submitBtn = document.getElementById('submitBtn');
   const anon = document.getElementById('anonCheck').checked;
   const name = anon ? 'Anonymous' : (document.getElementById('prayerName').value.trim() || 'Anonymous');
   const cat = document.getElementById('prayerCat').value;
   const text = document.getElementById('prayerText').value.trim();
-  if (!text) { showToast('Write your prayer request first.'); return; }
-  const prayer = {
-    id: 'u' + Date.now(), name, anon, category: cat, text,
-    date: new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' }),
-    prays: 0
-  };
-  const stored = getStoredPrayers();
-  stored.unshift(prayer);
-  savePrayers(stored);
-  document.getElementById('prayerText').value = '';
-  document.getElementById('prayerName').value = '';
-  document.getElementById('anonCheck').checked = false;
-  document.getElementById('prayerName').disabled = false;
-  document.getElementById('charCount').textContent = '0';
-  visibleCount = PAGE_SIZE;
-  renderWall();
-  showToast('🙏 Your request is on the wall. The brothers are praying.');
-}
 
-function prayFor(id) {
+  if (!text) { showToast('Write your prayer request first.'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Posting...';
+
+  try {
+    await addDoc(collection(db, 'prayers'), {
+      name,
+      anon,
+      category: cat,
+      text,
+      prays: 0,
+      created_at: serverTimestamp()
+    });
+
+    document.getElementById('prayerText').value = '';
+    document.getElementById('prayerName').value = '';
+    document.getElementById('anonCheck').checked = false;
+    document.getElementById('prayerName').disabled = false;
+    document.getElementById('charCount').textContent = '0';
+    visibleCount = PAGE_SIZE;
+
+    await loadPrayers();
+    showToast('🙏 Your request is on the wall. The brothers are praying.');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Could not post your prayer. Please try again.');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '🙏 Add to the Wall';
+  }
+};
+
+window.prayFor = async function(id) {
   const prayed = getPrayedList();
   if (prayed.includes(id)) { showToast('You already prayed for this.'); return; }
-  prayed.push(id);
-  savePrayed(prayed);
-  const stored = getStoredPrayers();
-  const idx = stored.findIndex(p => p.id === id);
-  if (idx >= 0) { stored[idx].prays++; savePrayers(stored); }
-  renderWall();
-  showToast('🙏 Prayed. God hears it.');
+
+  try {
+    await updateDoc(doc(db, 'prayers', id), { prays: increment(1) });
+    prayed.push(id);
+    savePrayed(prayed);
+    const p = allPrayers.find(x => x.id === id);
+    if (p) p.prays = (p.prays || 0) + 1;
+    renderWall();
+    showToast('🙏 Prayed. God hears it.');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ Could not record that. Please try again.');
+  }
+};
+
+window.loadMore = function() { visibleCount += PAGE_SIZE; renderWall(); };
+
+async function loadPrayers() {
+  try {
+    const q = query(collection(db, 'prayers'), orderBy('created_at', 'desc'));
+    const snapshot = await getDocs(q);
+    allPrayers = snapshot.docs.map(d => {
+      const data = d.data();
+      const dt = data.created_at?.toDate ? data.created_at.toDate() : new Date();
+      return {
+        id: d.id,
+        name: data.name || 'Anonymous',
+        category: data.category || 'Other',
+        text: data.text || '',
+        prays: data.prays || 0,
+        date: dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+      };
+    });
+    renderWall();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('prayerCards').innerHTML = `<div class="empty-wall"><p>⚠️</p><p>Unable to load the prayer wall. Please refresh.</p></div>`;
+  }
 }
 
-function loadMore() { visibleCount += PAGE_SIZE; renderWall(); }
-
 function renderWall() {
-  const all = getAllPrayers();
-  const filtered = currentCat === 'All' ? all : all.filter(p => p.category === currentCat);
-  document.getElementById('totalCount').textContent = all.length;
+  const filtered = currentCat === 'All' ? allPrayers : allPrayers.filter(p => p.category === currentCat);
+  document.getElementById('totalCount').textContent = allPrayers.length;
   const prayed = getPrayedList();
   const visible = filtered.slice(0, visibleCount);
   const cards = document.getElementById('prayerCards');
@@ -419,7 +480,7 @@ function renderWall() {
         <span class="prayer-category">${p.category}</span>
       </div>
       <p class="prayer-text">${p.text}</p>
-      <button class="pray-btn ${prayed.includes(p.id)?'prayed':''}" onclick="prayFor('${p.id}')">
+      <button class="pray-btn ${prayed.includes(p.id)?'prayed':''}" onclick="prayFor('${p.id}')" ${prayed.includes(p.id) ? 'disabled' : ''}>
         <span>🙏</span> ${prayed.includes(p.id) ? 'Prayed' : 'I Prayed for This'} · ${p.prays}
       </button>
     </div>
@@ -427,7 +488,7 @@ function renderWall() {
   document.getElementById('loadMoreBtn').style.display = filtered.length > visibleCount ? 'block' : 'none';
 }
 
-renderWall();
+loadPrayers();
 </script>
 </body>
 </html>
