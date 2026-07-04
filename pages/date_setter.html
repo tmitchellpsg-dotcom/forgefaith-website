@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Forge Faith — Date Setter</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --gold: #d4af37;
+    --gold-bright: #f2c94c;
+    --bg: #0a0a0a;
+    --card-bg: #151515;
+    --border: #2a2a2a;
+    --text: #f0f0f0;
+    --text-dim: #999;
+    --red: #e74c3c;
+    --green: #2ecc71;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    margin: 0;
+  }
+  header {
+    background: #000;
+    border-bottom: 1px solid var(--gold);
+    padding: 20px 30px;
+  }
+  header h1 { color: var(--gold); font-size: 22px; margin: 0; }
+  header .sub { color: var(--text-dim); font-size: 13px; margin-top: 4px; }
+  .container { max-width: 800px; margin: 0 auto; padding: 30px; }
+
+  #login-box {
+    max-width: 380px; margin: 80px auto; background: var(--card-bg);
+    border: 1px solid var(--border); border-radius: 10px; padding: 30px; text-align: center;
+  }
+  #login-box h2 { color: var(--gold); margin-top: 0; }
+  #login-box input {
+    width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px;
+    border: 1px solid var(--border); background: #1c1c1c; color: var(--text); font-size: 14px;
+  }
+  #login-box button {
+    width: 100%; padding: 12px; margin-top: 12px; background: var(--gold);
+    color: #000; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px;
+  }
+  #login-error { color: var(--red); font-size: 13px; margin-top: 10px; min-height: 16px; }
+
+  .month-card {
+    background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .month-card h3 { color: var(--gold); margin-top: 0; margin-bottom: 4px; }
+  .month-card .count { color: var(--text-dim); font-size: 13px; margin-bottom: 14px; }
+  .row { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .row label { font-size: 13px; color: var(--text-dim); min-width: 110px; }
+  .row input[type="date"] {
+    padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: #1c1c1c; color: var(--text); font-size: 14px;
+  }
+  .preview { font-size: 12px; color: #777; margin-bottom: 14px; }
+  .preview b { color: var(--gold); }
+  button.apply-btn {
+    background: var(--gold); color: #000; border: none; padding: 10px 20px;
+    border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px;
+  }
+  button.apply-btn:hover { background: var(--gold-bright); }
+  button.apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .status { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .status.success { color: var(--green); }
+  .status.error { color: var(--red); }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #000;
+    padding: 12px 20px; border-radius: 8px; font-weight: 600; font-size: 14px;
+    opacity: 0; transform: translateY(10px); transition: all 0.25s ease; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.error { background: var(--red); color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Date Setter</h1>
+  <div class="sub">Bulk-assign sequential unlock dates to each month's devotions</div>
+</header>
+
+<div id="login-box">
+  <h2>Admin Login</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Log In</button>
+  <div id="login-error"></div>
+</div>
+
+<div class="container" id="app-container" style="display:none;">
+  <div id="monthCards">
+    <div style="text-align:center; color:#999; padding:40px;">Loading devotions...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
+    authDomain: "forge-by-faith-u1c1tx.firebaseapp.com",
+    projectId: "forge-by-faith-u1c1tx",
+    storageBucket: "forge-by-faith-u1c1tx.firebasestorage.app",
+    messagingSenderId: "214263463654",
+    appId: "1:214263463654:web:e5dc76d0c8b42760364527"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let allDevotions = [];
+  const MONTH_ORDER = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(() => { t.className = 'toast'; }, 2500);
+  }
+
+  function login() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const errEl = document.getElementById('login-error');
+    errEl.textContent = '';
+    if (!email || !password) { errEl.textContent = 'Enter your email and password.'; return; }
+    auth.signInWithEmailAndPassword(email, password)
+      .catch(err => { errEl.textContent = 'Login failed: ' + err.message; });
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById('login-box').style.display = 'none';
+      document.getElementById('app-container').style.display = 'block';
+      loadDevotions();
+    } else {
+      document.getElementById('login-box').style.display = 'block';
+      document.getElementById('app-container').style.display = 'none';
+    }
+  });
+
+  async function loadDevotions() {
+    try {
+      const snapshot = await db.collection('devotions').orderBy('day_number', 'asc').get();
+      allDevotions = [];
+      snapshot.forEach(doc => allDevotions.push({ id: doc.id, ...doc.data() }));
+      renderMonthCards();
+    } catch (err) {
+      document.getElementById('monthCards').innerHTML = `<div style="color:#e74c3c;">Error loading: ${err.message}</div>`;
+    }
+  }
+
+  function renderMonthCards() {
+    const monthsPresent = [...new Set(allDevotions.map(d => d.month).filter(Boolean))];
+    monthsPresent.sort((a, b) => MONTH_ORDER.indexOf(a) - MONTH_ORDER.indexOf(b));
+
+    const wrap = document.getElementById('monthCards');
+    if (monthsPresent.length === 0) {
+      wrap.innerHTML = '<div style="color:#999;">No months found. Tag your devotions with a month first.</div>';
+      return;
+    }
+
+    wrap.innerHTML = monthsPresent.map(month => {
+      const docsInMonth = allDevotions.filter(d => d.month === month);
+      const count = docsInMonth.length;
+      const safeId = month.replace(/\s+/g, '_');
+      return `
+        <div class="month-card">
+          <h3>${month}</h3>
+          <div class="count">${count} devotion(s) tagged this month</div>
+          <div class="row">
+            <label>Day 1 unlocks on</label>
+            <input type="date" id="startDate_${safeId}">
+          </div>
+          <div class="preview" id="preview_${safeId}"></div>
+          <button class="apply-btn" onclick="applyDates('${month}', '${safeId}')">Set Sequential Dates</button>
+          <div class="status" id="status_${safeId}"></div>
+        </div>
+      `;
+    }).join('');
+
+    monthsPresent.forEach(month => {
+      const safeId = month.replace(/\s+/g, '_');
+      const input = document.getElementById(`startDate_${safeId}`);
+      input.addEventListener('change', () => updatePreview(month, safeId));
+    });
+  }
+
+  function updatePreview(month, safeId) {
+    const input = document.getElementById(`startDate_${safeId}`);
+    const preview = document.getElementById(`preview_${safeId}`);
+    if (!input.value) { preview.textContent = ''; return; }
+
+    const docsInMonth = allDevotions.filter(d => d.month === month);
+    const maxDay = Math.max(...docsInMonth.map(d => d.day_number || 0));
+    const start = new Date(input.value + 'T00:00:00');
+    const end = new Date(start);
+    end.setDate(end.getDate() + maxDay - 1);
+
+    preview.innerHTML = `Day 1 → <b>${start.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</b>, Day ${maxDay} → <b>${end.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</b>`;
+  }
+
+  window.applyDates = async function(month, safeId) {
+    const input = document.getElementById(`startDate_${safeId}`);
+    const statusEl = document.getElementById(`status_${safeId}`);
+    const btn = event.target;
+
+    if (!input.value) {
+      statusEl.textContent = 'Pick a start date first.';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    const docsInMonth = allDevotions.filter(d => d.month === month && d.day_number != null);
+    if (docsInMonth.length === 0) {
+      statusEl.textContent = 'No devotions with a day_number found for this month.';
+      statusEl.className = 'status error';
+      return;
+    }
+
+    btn.disabled = true;
+    statusEl.textContent = `Updating 0 / ${docsInMonth.length}...`;
+    statusEl.className = 'status';
+
+    const startDate = new Date(input.value + 'T00:00:00');
+    let done = 0;
+
+    for (const d of docsInMonth) {
+      const unlockDate = new Date(startDate);
+      unlockDate.setDate(unlockDate.getDate() + (d.day_number - 1));
+
+      try {
+        await db.collection('devotions').doc(d.id).update({
+          unlock_date: firebase.firestore.Timestamp.fromDate(unlockDate)
+        });
+        done++;
+        statusEl.textContent = `Updating ${done} / ${docsInMonth.length}...`;
+      } catch (err) {
+        console.error('Failed on', d.id, err);
+      }
+    }
+
+    statusEl.textContent = `✅ Done — ${done} of ${docsInMonth.length} devotions updated.`;
+    statusEl.className = 'status success';
+    btn.disabled = false;
+    showToast(`${month}: ${done} dates set.`);
+  };
+</script>
+
+</body>
+</html>
