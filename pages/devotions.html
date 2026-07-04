@@ -196,6 +196,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 let allDevotions = [];
 let currentFilter = 'all';
+let activeMonthName = '';
 
 // Website only ever unlocks Day 1 as a free preview.
 // Every other day requires the app (Pro subscription) — intentionally not date-based,
@@ -203,6 +204,8 @@ let currentFilter = 'all';
 function isUnlocked(d) {
   return d.day_number === 1;
 }
+
+const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 // Series data — update as you add months
 const SERIES = [
@@ -225,7 +228,7 @@ function updateSeriesBanner() {
     }
   }
 
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  activeMonthName = monthNames[activeSeries.month];
 
   document.getElementById('seriesEyebrow').textContent = `Month ${activeSeries.num} · ${monthNames[activeSeries.month]} ${activeSeries.year}`;
   document.getElementById('seriesTitle').textContent = activeSeries.name;
@@ -247,7 +250,12 @@ async function loadDevotions() {
   try {
     const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'));
     const snapshot = await getDocs(q);
-    allDevotions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const everything = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Only show the currently active month's devotions — prevents July/August
+    // (or any two months) from colliding on the same Day 1, Day 2, etc.
+    allDevotions = everything.filter(d => d.month === activeMonthName);
+
     if (allDevotions.length === 0) {
       document.getElementById('devotionsGrid').innerHTML = '<div class="loading-state"><p>📖 Devotions launching soon.</p></div>';
       return;
