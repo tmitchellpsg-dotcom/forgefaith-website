@@ -53,12 +53,12 @@ body { background: var(--dark); }
   display: flex; align-items: center; gap: 0.5rem;
 }
 .btn-new-devotion:hover { background: var(--gold-light); }
-.btn-csv-import {
+.btn-csv-import, .btn-date-setter {
   background: var(--dark-3); color: var(--text-muted); border: 1px solid var(--gold-border);
   padding: 0.75rem 1.5rem; border-radius: var(--radius); font-weight: 600;
   font-size: 0.85rem; cursor: pointer; transition: 0.2s;
 }
-.btn-csv-import:hover { border-color: var(--gold); color: var(--gold); }
+.btn-csv-import:hover, .btn-date-setter:hover { border-color: var(--gold); color: var(--gold); }
 
 /* CSV MODAL */
 .csv-modal { max-width: 640px; }
@@ -83,6 +83,32 @@ body { background: var(--dark); }
 .csv-row-error { color: #e88; }
 .csv-summary { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
 .csv-summary strong { color: var(--gold); }
+
+/* DATE SETTER MODAL */
+.date-setter-modal { max-width: 640px; }
+.month-date-card {
+  background: var(--dark-4); border: 1px solid var(--gold-border); border-radius: 8px;
+  padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+}
+.month-date-card h4 { color: var(--gold); margin: 0 0 0.2rem; font-size: 1.05rem; }
+.month-date-card .count { color: var(--text-muted); font-size: 0.78rem; margin-bottom: 1rem; }
+.date-row { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; }
+.date-row label { font-size: 0.8rem; color: var(--text-muted); min-width: 110px; }
+.date-row input[type="date"] {
+  padding: 0.5rem 0.65rem; border-radius: var(--radius); border: 1px solid var(--gold-border);
+  background: var(--dark-3); color: var(--text); font-size: 0.85rem;
+}
+.date-preview { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.9rem; min-height: 1.1em; }
+.date-preview b { color: var(--gold); }
+.btn-apply-dates {
+  background: var(--gold); color: var(--dark); border: none; padding: 0.55rem 1.2rem;
+  border-radius: var(--radius); font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: background 0.2s;
+}
+.btn-apply-dates:hover { background: var(--gold-light); }
+.btn-apply-dates:disabled { opacity: 0.5; cursor: not-allowed; }
+.date-status { font-size: 0.78rem; margin-top: 0.6rem; min-height: 1.1em; }
+.date-status.success { color: #6ad17f; }
+.date-status.error { color: #e88; }
 
 /* FILTERS */
 .admin-filters { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: center; }
@@ -227,6 +253,7 @@ select.form-select {
     <div class="admin-header">
       <h1>Devotions</h1>
       <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+        <button class="btn-date-setter" onclick="openDateSetterModal()">📅 Set Dates</button>
         <button class="btn-csv-import" onclick="openCsvModal()">📄 Bulk Import CSV</button>
         <button class="btn-new-devotion" onclick="openEditor(null)">+ New Devotion</button>
       </div>
@@ -411,12 +438,26 @@ select.form-select {
   </div>
 </div>
 
+<!-- DATE SETTER MODAL -->
+<div class="editor-overlay" id="dateSetterOverlay">
+  <div class="editor-modal date-setter-modal">
+    <button class="editor-close" onclick="closeDateSetterModal()">×</button>
+    <h2>Set Devotion Dates</h2>
+    <p style="font-size:0.85rem; color:var(--text-muted); margin-top:-1rem; margin-bottom:1.5rem; line-height:1.6;">
+      Pick a start date for Day 1 of each month. Every other day in that month is automatically dated sequentially from there — Day 2 gets +1 day, Day 3 gets +2 days, and so on.
+    </p>
+    <div id="dateSetterCards">
+      <div style="text-align:center; color:var(--text-muted); padding:2rem;">Loading months...</div>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, addDoc, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, addDoc, orderBy, query, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const firebaseConfig = {
@@ -735,6 +776,112 @@ window.deleteDevotion = async function() {
   } catch (err) {
     showToast('⚠️ Error deleting: ' + err.message, 5000);
   }
+};
+
+// ───── DATE SETTER ─────
+window.openDateSetterModal = function() {
+  renderDateSetterCards();
+  document.getElementById('dateSetterOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeDateSetterModal = function() {
+  document.getElementById('dateSetterOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+};
+
+function renderDateSetterCards() {
+  const monthsPresent = [...new Set(allDevotions.map(d => d.month).filter(Boolean))];
+  monthsPresent.sort((a, b) => MONTH_ORDER.indexOf(a) - MONTH_ORDER.indexOf(b));
+
+  const wrap = document.getElementById('dateSetterCards');
+  if (monthsPresent.length === 0) {
+    wrap.innerHTML = '<p style="color:var(--text-muted); text-align:center;">No months found. Tag your devotions with a month first.</p>';
+    return;
+  }
+
+  wrap.innerHTML = monthsPresent.map(month => {
+    const docsInMonth = allDevotions.filter(d => d.month === month);
+    const safeId = month.replace(/\s+/g, '_');
+    return `
+      <div class="month-date-card">
+        <h4>${month}</h4>
+        <div class="count">${docsInMonth.length} devotion(s) tagged this month</div>
+        <div class="date-row">
+          <label>Day 1 unlocks on</label>
+          <input type="date" id="dateInput_${safeId}" oninput="updateDatePreview('${month}', '${safeId}')">
+        </div>
+        <div class="date-preview" id="datePreview_${safeId}"></div>
+        <button class="btn-apply-dates" onclick="applySequentialDates('${month}', '${safeId}')">Set Sequential Dates</button>
+        <div class="date-status" id="dateStatus_${safeId}"></div>
+      </div>
+    `;
+  }).join('');
+}
+
+window.updateDatePreview = function(month, safeId) {
+  const input = document.getElementById(`dateInput_${safeId}`);
+  const preview = document.getElementById(`datePreview_${safeId}`);
+  if (!input.value) { preview.textContent = ''; return; }
+
+  const docsInMonth = allDevotions.filter(d => d.month === month && d.day_number != null);
+  if (docsInMonth.length === 0) { preview.textContent = 'No day-numbered devotions in this month.'; return; }
+
+  const maxDay = Math.max(...docsInMonth.map(d => d.day_number || 0));
+  const start = new Date(input.value + 'T00:00:00');
+  const end = new Date(start);
+  end.setDate(end.getDate() + maxDay - 1);
+
+  const fmt = (dt) => dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  preview.innerHTML = `Day 1 → <b>${fmt(start)}</b>, Day ${maxDay} → <b>${fmt(end)}</b>`;
+};
+
+window.applySequentialDates = async function(month, safeId) {
+  const input = document.getElementById(`dateInput_${safeId}`);
+  const statusEl = document.getElementById(`dateStatus_${safeId}`);
+  const btn = event.target;
+
+  if (!input.value) {
+    statusEl.textContent = 'Pick a start date first.';
+    statusEl.className = 'date-status error';
+    return;
+  }
+
+  const docsInMonth = allDevotions.filter(d => d.month === month && d.day_number != null);
+  if (docsInMonth.length === 0) {
+    statusEl.textContent = 'No day-numbered devotions found for this month.';
+    statusEl.className = 'date-status error';
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.textContent = `Updating 0 / ${docsInMonth.length}...`;
+  statusEl.className = 'date-status';
+
+  const startDate = new Date(input.value + 'T00:00:00');
+  let done = 0;
+
+  for (const d of docsInMonth) {
+    const unlockDate = new Date(startDate);
+    unlockDate.setDate(unlockDate.getDate() + (d.day_number - 1));
+
+    try {
+      await updateDoc(doc(db, 'devotions', d.id), {
+        unlock_date: Timestamp.fromDate(unlockDate)
+      });
+      d.unlock_date = Timestamp.fromDate(unlockDate);
+      done++;
+      statusEl.textContent = `Updating ${done} / ${docsInMonth.length}...`;
+    } catch (err) {
+      console.error('Failed on', d.id, err);
+    }
+  }
+
+  statusEl.textContent = `✅ Done — ${done} of ${docsInMonth.length} devotions updated.`;
+  statusEl.className = 'date-status success';
+  btn.disabled = false;
+  showToast(`${month}: ${done} dates set.`);
+  renderGrid();
 };
 
 // ───── CSV BULK IMPORT ─────
