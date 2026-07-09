@@ -148,6 +148,15 @@ body { background: var(--dark); }
 .devo-month-badge.missing {
   background: rgba(220,100,100,0.85); color: #fff;
 }
+.quick-delete-btn {
+  position: absolute; bottom: 0.6rem; right: 0.6rem;
+  background: rgba(20,20,20,0.85); border: 1px solid rgba(220,100,100,0.5); color: #e88;
+  width: 28px; height: 28px; border-radius: 50%; font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+}
+.quick-delete-btn:hover {
+  background: rgba(220,100,100,0.25); color: #fff;
+}
 .devo-info { padding: 1rem; }
 .devo-info h4 { font-size: 0.95rem; margin-bottom: 0.6rem; line-height: 1.3; min-height: 2.4em; }
 .devo-status-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
@@ -458,7 +467,7 @@ select.form-select {
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc, addDoc, orderBy, query, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
@@ -594,6 +603,7 @@ function renderGrid() {
         ${d.image_url ? `<img src="${d.image_url}" loading="lazy">` : `<span class="no-img">📖</span>`}
         <span class="devo-day-badge">Day ${d.day_number ?? '?'}</span>
         <span class="devo-month-badge ${d.month ? '' : 'missing'}">${d.month || 'No month'}</span>
+        <button class="quick-delete-btn" onclick="quickDeleteDevotion(event, '${d.id}')" title="Delete devotion">🗑️</button>
       </div>
       <div class="devo-info">
         <h4>${d.title || 'Untitled'}</h4>
@@ -765,13 +775,38 @@ window.saveDevotion = async function() {
   }
 };
 
+async function deleteDevotionRecord(id) {
+  const d = allDevotions.find(x => x.id === id);
+  if (d) {
+    if (d.image_url) {
+      try { await deleteObject(ref(storage, d.image_url)); } catch (err) { console.warn('Image delete failed:', err); }
+    }
+    if (d.audio_url) {
+      try { await deleteObject(ref(storage, d.audio_url)); } catch (err) { console.warn('Audio delete failed:', err); }
+    }
+  }
+  await deleteDoc(doc(db, 'devotions', id));
+}
+
 window.deleteDevotion = async function() {
   if (!currentEditId) return;
   if (!confirm('Delete this devotion permanently? This cannot be undone.')) return;
   try {
-    await deleteDoc(doc(db, 'devotions', currentEditId));
+    await deleteDevotionRecord(currentEditId);
     showToast('🗑️ Devotion deleted.');
     closeEditor();
+    await loadDevotions();
+  } catch (err) {
+    showToast('⚠️ Error deleting: ' + err.message, 5000);
+  }
+};
+
+window.quickDeleteDevotion = async function(event, id) {
+  event.stopPropagation();
+  if (!confirm('Delete this devotion permanently? This cannot be undone.')) return;
+  try {
+    await deleteDevotionRecord(id);
+    showToast('🗑️ Devotion deleted.');
     await loadDevotions();
   } catch (err) {
     showToast('⚠️ Error deleting: ' + err.message, 5000);
