@@ -349,16 +349,8 @@ select.form-select {
     </div>
 
     <div class="form-group">
-      <label>Devotion — Paragraph 1</label>
-      <textarea id="f_body_1" rows="3"></textarea>
-    </div>
-    <div class="form-group">
-      <label>Devotion — Paragraph 2</label>
-      <textarea id="f_body_2" rows="3"></textarea>
-    </div>
-    <div class="form-group">
-      <label>Devotion — Paragraph 3</label>
-      <textarea id="f_body_3" rows="3"></textarea>
+      <label>Devotion Body</label>
+      <textarea id="f_devotion_body" rows="8"></textarea>
     </div>
 
     <div class="form-group">
@@ -429,7 +421,7 @@ select.form-select {
       </div>
       <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:0.5rem;">
         Columns expected (first row = headers, any order). <strong style="color:var(--gold);">month</strong> is required on every row:<br>
-        <code style="color:var(--gold); font-size:0.75rem;">day_number, month, unlock_date, title, theme, verse_reference, verse_text, body_1, body_2, body_3, life_application, challenge, prayer</code>
+        <code style="color:var(--gold); font-size:0.75rem;">day_number, month, unlock_date, title, theme, verse_reference, verse_text, devotion_body, life_application, challenge, prayer</code>
       </p>
       <span class="csv-template-link" onclick="downloadCsvTemplate()">⬇ Download blank CSV template</span>
     </div>
@@ -636,9 +628,7 @@ window.openEditor = function(id) {
     document.getElementById('f_theme').value = d.theme || '';
     document.getElementById('f_verse_reference').value = d.verse_reference || '';
     document.getElementById('f_verse_text').value = d.verse_text || '';
-    document.getElementById('f_body_1').value = d.body_1 || '';
-    document.getElementById('f_body_2').value = d.body_2 || '';
-    document.getElementById('f_body_3').value = d.body_3 || '';
+    document.getElementById('f_devotion_body').value = d.devotion_body || [d.body_1, d.body_2, d.body_3].filter(Boolean).join('\n\n');
     document.getElementById('f_life_application').value = d.life_application || '';
     document.getElementById('f_challenge').value = d.challenge || '';
     document.getElementById('f_prayer').value = d.prayer || '';
@@ -654,7 +644,7 @@ window.openEditor = function(id) {
       : `<span class="upload-placeholder">No audio uploaded</span>`;
   } else {
     document.getElementById('editorTitle').textContent = 'New Devotion';
-    ['f_day_number','f_unlock_date','f_title','f_theme','f_verse_reference','f_verse_text','f_body_1','f_body_2','f_body_3','f_life_application','f_challenge','f_prayer'].forEach(id => document.getElementById(id).value = '');
+    ['f_day_number','f_unlock_date','f_title','f_theme','f_verse_reference','f_verse_text','f_devotion_body','f_life_application','f_challenge','f_prayer'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f_month').value = '';
     document.getElementById('f_is_complete').checked = false;
     document.getElementById('deleteBtn').style.display = 'none';
@@ -719,9 +709,7 @@ window.saveDevotion = async function() {
       theme: document.getElementById('f_theme').value.trim(),
       verse_reference: document.getElementById('f_verse_reference').value.trim(),
       verse_text: document.getElementById('f_verse_text').value.trim(),
-      body_1: document.getElementById('f_body_1').value.trim(),
-      body_2: document.getElementById('f_body_2').value.trim(),
-      body_3: document.getElementById('f_body_3').value.trim(),
+      devotion_body: document.getElementById('f_devotion_body').value.trim(),
       life_application: document.getElementById('f_life_application').value.trim(),
       challenge: document.getElementById('f_challenge').value.trim(),
       prayer: document.getElementById('f_prayer').value.trim(),
@@ -920,7 +908,7 @@ window.applySequentialDates = async function(month, safeId) {
 };
 
 // ───── CSV BULK IMPORT ─────
-const CSV_COLUMNS = ['day_number','month','unlock_date','title','theme','verse_reference','verse_text','body_1','body_2','body_3','life_application','challenge','prayer'];
+const CSV_COLUMNS = ['day_number','month','unlock_date','title','theme','verse_reference','verse_text','devotion_body','life_application','challenge','prayer'];
 let parsedCsvRows = [];
 
 window.openCsvModal = function() {
@@ -943,7 +931,7 @@ window.resetCsvModal = function() {
 
 window.downloadCsvTemplate = function() {
   const headerRow = CSV_COLUMNS.join(',');
-  const exampleRow = '1,September,2026-09-01,"The Weight of Purpose","Purpose & Identity","Colossians 3:23","Whatever you do, do your work heartily, as for the Lord.","Paragraph one text here.","Paragraph two text here.","Paragraph three text here.","Apply this today by...","Today, do this specific thing.","Lord, help me..."';
+  const exampleRow = '1,September,2026-09-01,"The Weight of Purpose","Purpose & Identity","Colossians 3:23","Whatever you do, do your work heartily, as for the Lord.","Full devotion body text here.","Apply this today by...","Today, do this specific thing.","Lord, help me..."';
   const csvContent = headerRow + '\n' + exampleRow;
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -1068,9 +1056,7 @@ window.importCsvRows = async function() {
         theme: r.theme || '',
         verse_reference: r.verse_reference || '',
         verse_text: r.verse_text || '',
-        body_1: r.body_1 || '',
-        body_2: r.body_2 || '',
-        body_3: r.body_3 || '',
+        devotion_body: r.devotion_body || '',
         life_application: r.life_application || '',
         challenge: r.challenge || '',
         prayer: r.prayer || '',
