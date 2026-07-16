@@ -432,7 +432,7 @@ select.form-select {
         <table class="csv-preview-table" id="csvPreviewTable"></table>
       </div>
       <div class="editor-actions">
-        <button class="btn-save" id="csvImportBtn" onclick="importCsvRows()">Import All Rows</button>
+        <button class="btn-save" id="csvImportBtn" onclick="()">Import All Rows</button>
         <button class="btn-delete" onclick="resetCsvModal()">Start Over</button>
       </div>
     </div>
@@ -1056,7 +1056,7 @@ window.importCsvRows = async function() {
         theme: r.theme || '',
         verse_reference: r.verse_reference || '',
         verse_text: r.verse_text || '',
-        devotion_body: r.devotion_body || '',
+        devotion_body: (r.devotion_body || '').replace(/\\n/g, '\n'),
         life_application: r.life_application || '',
         challenge: r.challenge || '',
         prayer: r.prayer || '',
