@@ -320,7 +320,9 @@ window.openDev = function(id) {
     <div class="modal-body">
       ${d.body_1?`<p>${d.body_1}</p>`:''}
       ${d.body_2?`<p>${d.body_2}</p>`:''}
-      ${d.body_3?`<p>${d.body_3}</p>`:''}
+      ${d.body_3?`<p>${d.body_3}</p>`:''} ${(!d.body_1 && !d.body_2 && !d.body_3 && d.devotion_body)?d.devotion_body.split(/
+\s*
+/).filter(Boolean).map(p=>`<p>${p}</p>`).join(''):''}
     </div>
     ${d.life_application?`<p class="modal-section-title">Life Application</p><div class="modal-challenge">${d.life_application}</div>`:''}
     ${d.challenge?`<p class="modal-section-title">Today's Challenge</p><div class="modal-challenge">${d.challenge}</div>`:''}
