@@ -247,6 +247,7 @@ nav { background: rgba(8,8,8,0.92) !important; }
 
     <!-- FORM -->
     <div class="prayer-form-wrap">
+      <div id="authStatusLine" style="font-size:0.78rem;color:var(--text-dim);margin-bottom:1rem;"></div>
       <h3>Submit a Request</h3>
       <p>Your prayer goes public on the wall unless you choose anonymous. The nation stands with you.</p>
       <div class="form-group">
@@ -325,6 +326,28 @@ nav { background: rgba(8,8,8,0.92) !important; }
   </div>
 </footer>
 
+<div id="authModal" data-mode="signin" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+  <div style="background:#141414;border:1px solid var(--gold-border);border-radius:10px;padding:2rem;max-width:380px;width:90vw;position:relative;">
+    <button onclick="closeAuthModal()" style="position:absolute;top:0.75rem;right:0.75rem;background:none;border:none;color:var(--text-muted);font-size:1.2rem;cursor:pointer;">&times;</button>
+    <div style="display:flex;gap:1.5rem;margin-bottom:1.25rem;">
+      <button class="auth-tab-btn" onclick="authSwitchTab('signin', this)" style="background:none;border:none;color:var(--gold);font-weight:700;cursor:pointer;padding:0;">Sign In</button>
+      <button class="auth-tab-btn" onclick="authSwitchTab('signup', this)" style="background:none;border:none;color:var(--text-muted);font-weight:700;cursor:pointer;padding:0;">Create Account</button>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1rem;line-height:1.6;">Sign in to submit a prayer or tap "I Prayed." Your website account is separate from the app.</p>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="authEmail" placeholder="you@example.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="authPassword" placeholder="••••••••">
+    </div>
+    <div id="authError" style="color:#ff8080;font-size:0.78rem;margin-bottom:0.75rem;min-height:1em;"></div>
+    <button class="btn-submit-prayer" id="authSubmitBtn" onclick="doEmailAuth()">Sign In</button>
+    <div style="text-align:center;margin:1rem 0;color:var(--text-dim);font-size:0.75rem;">— or —</div>
+    <button type="button" onclick="doGoogleAuth()" style="width:100%;background:#fff;color:#222;border:none;padding:0.8rem;border-radius:var(--radius);font-weight:600;font-size:0.85rem;cursor:pointer;">Continue with Google</button>
+  </div>
+</div>
 <div id="toast"></div>
 <script src="../js/main.js"></script>
 
@@ -332,8 +355,12 @@ nav { background: rgba(8,8,8,0.92) !important; }
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
   getFirestore, collection, addDoc, getDocs, query, orderBy,
-  doc, updateDoc, increment, serverTimestamp
+  doc, updateDoc, increment, serverTimestamp, getDoc, setDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import {
+  getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, GoogleAuthProvider, signInWithPopup
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
@@ -346,6 +373,98 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+let pendingAction = null;
+
+function updateAuthStatus() {
+  const el = document.getElementById('authStatusLine');
+  if (!el) return;
+  if (currentUser) {
+    const label = currentUser.displayName || currentUser.email || 'Forger';
+    el.innerHTML = 'Signed in as <strong>' + label + '</strong> \u00b7 <a href="#" onclick="doSignOut();return false;">Sign out</a>';
+  } else {
+    el.innerHTML = '<a href="#" onclick="openAuthModal();return false;">Sign in to submit or pray</a>';
+  }
+}
+
+async function ensureUserDoc(user) {
+  try {
+    const ref = doc(db, 'Users', user.uid);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      await setDoc(ref, {
+        uid: user.uid,
+        email: user.email || '',
+        display_name: user.displayName || (user.email ? user.email.split('@')[0] : 'Forger'),
+        created_time: serverTimestamp(),
+        is_subscribed: false,
+        current_streak: 0,
+        longest_streak: 0
+      });
+    }
+  } catch (err) { console.error(err); }
+}
+
+onAuthStateChanged(auth, function(user) {
+  currentUser = user;
+  updateAuthStatus();
+  if (user && pendingAction) {
+    ensureUserDoc(user).then(function() {
+      closeAuthModal();
+      const action = pendingAction; pendingAction = null;
+      if (action.type === 'submit') doSubmitPrayer();
+      if (action.type === 'pray') doPrayFor(action.id);
+    });
+  }
+});
+
+window.openAuthModal = function() {
+  const modal = document.getElementById('authModal');
+  if (modal) modal.style.display = 'flex';
+  const err = document.getElementById('authError');
+  if (err) err.textContent = '';
+};
+window.closeAuthModal = function() {
+  const modal = document.getElementById('authModal');
+  if (modal) modal.style.display = 'none';
+};
+window.authSwitchTab = function(mode, btn) {
+  document.querySelectorAll('.auth-tab-btn').forEach(function(b){ b.style.color = 'var(--text-muted)'; });
+  btn.style.color = 'var(--gold)';
+  document.getElementById('authModal').dataset.mode = mode;
+  document.getElementById('authSubmitBtn').textContent = mode === 'signup' ? 'Create Account' : 'Sign In';
+};
+window.doEmailAuth = async function() {
+  const mode = document.getElementById('authModal').dataset.mode || 'signin';
+  const email = document.getElementById('authEmail').value.trim();
+  const pass = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Enter your email and password.'; return; }
+  try {
+    if (mode === 'signup') {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } else {
+      await signInWithEmailAndPassword(auth, email, pass);
+    }
+  } catch (err) {
+    errEl.textContent = err.message || 'Could not sign in. Please try again.';
+  }
+};
+window.doGoogleAuth = async function() {
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (err) {
+    errEl.textContent = err.message || 'Google sign-in failed.';
+  }
+};
+window.doSignOut = async function() {
+  try { await signOut(auth); showToast('Signed out.'); } catch (err) { console.error(err); }
+};
 
 const PRAYED_KEY = 'ff_prayed_v3'; // per-device "already tapped I Prayed" list — this alone can stay local
 const PAGE_SIZE = 10;
@@ -376,7 +495,14 @@ window.filterCat = function(cat, btn) {
   renderWall();
 };
 
-window.submitPrayer = async function() {
+window.submitPrayer = function() {
+  const text = document.getElementById('prayerText').value.trim();
+  if (!text) { showToast('Write your prayer request first.'); return; }
+  if (!currentUser) { pendingAction = { type: 'submit' }; openAuthModal(); return; }
+  doSubmitPrayer();
+};
+
+async function doSubmitPrayer() {
   const submitBtn = document.getElementById('submitBtn');
   const anon = document.getElementById('anonCheck').checked;
   const name = anon ? 'Anonymous' : (document.getElementById('prayerName').value.trim() || 'Anonymous');
@@ -389,13 +515,15 @@ window.submitPrayer = async function() {
   submitBtn.textContent = 'Posting...';
 
   try {
-    await addDoc(collection(db, 'prayers'), {
-      name,
-      anon,
+    await addDoc(collection(db, 'prayer_requests'), {
+      display_name: name,
+      is_anonymous: anon,
       category: cat,
-      text,
-      prays: 0,
-      created_at: serverTimestamp()
+      prayer_text: text,
+      pray_count: 0,
+      is_answered: false,
+      created_time: serverTimestamp(),
+      user_ref: doc(db, 'Users', currentUser.uid)
     });
 
     document.getElementById('prayerText').value = '';
@@ -414,14 +542,21 @@ window.submitPrayer = async function() {
     submitBtn.disabled = false;
     submitBtn.textContent = '🙏 Add to the Wall';
   }
+}
+
+window.prayFor = function(id) {
+  const prayed = getPrayedList();
+  if (prayed.includes(id)) { showToast('You already prayed for this.'); return; }
+  if (!currentUser) { pendingAction = { type: 'pray', id: id }; openAuthModal(); return; }
+  doPrayFor(id);
 };
 
-window.prayFor = async function(id) {
+async function doPrayFor(id) {
   const prayed = getPrayedList();
   if (prayed.includes(id)) { showToast('You already prayed for this.'); return; }
 
   try {
-    await updateDoc(doc(db, 'prayers', id), { prays: increment(1) });
+    await updateDoc(doc(db, 'prayer_requests', id), { pray_count: increment(1) });
     prayed.push(id);
     savePrayed(prayed);
     const p = allPrayers.find(x => x.id === id);
@@ -432,23 +567,23 @@ window.prayFor = async function(id) {
     console.error(err);
     showToast('⚠️ Could not record that. Please try again.');
   }
-};
+}
 
 window.loadMore = function() { visibleCount += PAGE_SIZE; renderWall(); };
 
 async function loadPrayers() {
   try {
-    const q = query(collection(db, 'prayers'), orderBy('created_at', 'desc'));
+    const q = query(collection(db, 'prayer_requests'), orderBy('created_time', 'desc'));
     const snapshot = await getDocs(q);
     allPrayers = snapshot.docs.map(d => {
       const data = d.data();
-      const dt = data.created_at?.toDate ? data.created_at.toDate() : new Date();
+      const dt = data.created_time?.toDate ? data.created_time.toDate() : new Date();
       return {
         id: d.id,
-        name: data.name || 'Anonymous',
+        name: data.is_anonymous ? 'Anonymous' : (data.display_name || 'Anonymous'),
         category: data.category || 'Other',
-        text: data.text || '',
-        prays: data.prays || 0,
+        text: data.prayer_text || '',
+        prays: data.pray_count || 0,
         date: dt.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
       };
     });
