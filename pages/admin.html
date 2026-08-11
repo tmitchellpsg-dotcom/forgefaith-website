@@ -252,6 +252,10 @@ select.form-select {
 <div id="adminShell">
   <div class="admin-topbar">
     <img src="https://firebasestorage.googleapis.com/v0/b/forge-by-faith-u1c1tx.firebasestorage.app/o/Image_url%2FLogo%201.png?alt=media&token=e19276cf-84e1-498b-b9ab-68963819c25a" alt="Forge Faith">
+    <div style="display:flex;gap:0.5rem;margin-left:1.5rem;">
+      <button id="navDevotionsBtn" class="admin-filter-btn active" onclick="showAdminView('devotions')">Devotions</button>
+      <button id="navPrayersBtn" class="admin-filter-btn" onclick="showAdminView('prayers')">Prayer Wall</button>
+    </div>
     <div class="admin-user-info">
       <span id="adminUserEmail"></span>
       <button class="btn-logout" onclick="doLogout()">Log Out</button>
@@ -259,6 +263,7 @@ select.form-select {
   </div>
 
   <div class="admin-body">
+  <div id="devotionsView">
     <div class="admin-header">
       <h1>Devotions</h1>
       <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
@@ -286,6 +291,20 @@ select.form-select {
     </div>
   </div>
 </div>
+
+  </div>
+
+  <div id="prayerView" style="display:none;">
+    <div class="admin-header">
+      <h1>Prayer Wall</h1>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+        <button class="btn-new-devotion" onclick="loadPrayerRequests()">🔄 Refresh</button>
+      </div>
+    </div>
+    <div class="admin-grid" id="prayerGrid" style="grid-template-columns:1fr;">
+      <div class="empty-grid"><p>⏳</p><p>Loading prayer requests...</p></div>
+    </div>
+  </div>
 
 <!-- EDITOR MODAL -->
 <div class="editor-overlay" id="editorOverlay">
@@ -512,6 +531,73 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('adminShell').style.display = 'none';
   }
 });
+
+window.showAdminView = function(view) {
+  const devBtn = document.getElementById('navDevotionsBtn');
+  const prayBtn = document.getElementById('navPrayersBtn');
+  const devView = document.getElementById('devotionsView');
+  const prayView = document.getElementById('prayerView');
+  if (view === 'prayers') {
+    devView.style.display = 'none';
+    prayView.style.display = 'block';
+    devBtn.classList.remove('active');
+    prayBtn.classList.add('active');
+    if (!prayerRequestsLoaded) loadPrayerRequests();
+  } else {
+    devView.style.display = 'block';
+    prayView.style.display = 'none';
+    prayBtn.classList.remove('active');
+    devBtn.classList.add('active');
+  }
+};
+
+let prayerRequestsLoaded = false;
+
+async function loadPrayerRequests() {
+  const grid = document.getElementById('prayerGrid');
+  grid.innerHTML = '<div class="empty-grid"><p>⏳</p><p>Loading prayer requests...</p></div>';
+  try {
+    const q = query(collection(db, 'prayer_requests'), orderBy('created_time', 'desc'));
+    const snapshot = await getDocs(q);
+    prayerRequestsLoaded = true;
+    if (snapshot.empty) {
+      grid.innerHTML = '<div class="empty-grid"><p>🙏</p><p>No prayer requests yet.</p></div>';
+      return;
+    }
+    grid.innerHTML = snapshot.docs.map(function(d) {
+      const data = d.data();
+      const dt = data.created_time && data.created_time.toDate ? data.created_time.toDate() : null;
+      const dateStr = dt ? dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+      const name = data.is_anonymous ? 'Anonymous' : (data.display_name || 'Anonymous');
+      const text = (data.prayer_text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return '<div style="background:var(--dark-3);border:1px solid var(--gold-border);border-radius:8px;padding:1.1rem;display:flex;flex-direction:column;gap:0.6rem;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;">' +
+          '<strong>' + name + '</strong>' +
+          '<span style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap;">' + (data.category || 'Other') + ' · ' + dateStr + '</span>' +
+        '</div>' +
+        '<p style="font-size:0.88rem;color:var(--text-muted);line-height:1.6;">' + text + '</p>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+          '<span style="font-size:0.78rem;color:var(--text-dim);">🙏 ' + (data.pray_count || 0) + ' prayed</span>' +
+          '<button style="background:none;border:1px solid #ff6b6b;color:#ff6b6b;border-radius:6px;padding:0.4rem 0.9rem;font-size:0.78rem;cursor:pointer;" onclick="deletePrayerRequest(\'' + d.id + '\')">Delete</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (err) {
+    console.error(err);
+    grid.innerHTML = '<div class="empty-grid"><p>⚠️</p><p>Could not load prayer requests.</p></div>';
+  }
+}
+
+window.deletePrayerRequest = async function(id) {
+  if (!confirm('Delete this prayer request permanently? This cannot be undone.')) return;
+  try {
+    await deleteDoc(doc(db, 'prayer_requests', id));
+    loadPrayerRequests();
+  } catch (err) {
+    console.error(err);
+    alert('Could not delete this prayer request. Please try again.');
+  }
+};
 
 // ───── LOAD ─────
 async function loadDevotions() {
