@@ -269,6 +269,7 @@ select.form-select {
       <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
         <button class="btn-date-setter" onclick="openDateSetterModal()">📅 Set Dates</button>
         <button class="btn-csv-import" onclick="openCsvModal()">📄 Bulk Import CSV</button>
+        <button id="publishPublicBtn" class="btn-csv-import" onclick="publishPublicPreviews()">🌐 Publish Public Previews</button>
         <button class="btn-new-devotion" onclick="openEditor(null)">+ New Devotion</button>
       </div>
     </div>
@@ -596,6 +597,61 @@ window.deletePrayerRequest = async function(id) {
   } catch (err) {
     console.error(err);
     alert('Could not delete this prayer request. Please try again.');
+  }
+};
+
+// ───── PUBLIC PREVIEWS ─────
+// Mirrors ONLY the title and the scripture into a world-readable collection so the
+// website can show a free daily teaser. The devotion body, life application,
+// challenge, prayer, audio and images never leave the protected devotions collection.
+window.publishPublicPreviews = async function () {
+  if (!allDevotions.length) { showToast('⚠️ No devotions loaded yet.', 4000); return; }
+
+  const rows = allDevotions.filter(d => d.month && d.day_number);
+  const skipped = allDevotions.length - rows.length;
+
+  const ok = confirm('Publish ' + rows.length + ' public previews? Only the month, day number, title, verse reference and verse text are copied to devotions_public. The devotion body, life application, challenge, prayer, audio and images are never included.');
+  if (!ok) return;
+
+  const btn = document.getElementById('publishPublicBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Publishing…'; }
+
+  let done = 0, failed = 0;
+  for (const d of rows) {
+    try {
+      await setDoc(doc(db, 'devotions_public', d.id), {
+        month: d.month,
+        day_number: d.day_number,
+        title: d.title || '',
+        verse_reference: d.verse_reference || '',
+        verse_text: d.verse_text || ''
+      });
+      done++;
+    } catch (err) { failed++; console.error('devotions_public write failed for ' + d.id, err); }
+  }
+
+  // Drop previews whose devotion no longer exists, so deleted content cannot linger publicly.
+  let removed = 0;
+  try {
+    const liveIds = new Set(rows.map(r => r.id));
+    const existing = await getDocs(collection(db, 'devotions_public'));
+    for (const prev of existing.docs) {
+      if (!liveIds.has(prev.id)) {
+        try { await deleteDoc(doc(db, 'devotions_public', prev.id)); removed++; }
+        catch (err) { console.error('devotions_public cleanup failed for ' + prev.id, err); }
+      }
+    }
+  } catch (err) { console.error('devotions_public cleanup skipped', err); }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🌐 Publish Public Previews'; }
+
+  if (failed) {
+    showToast('⚠️ Published ' + done + ', ' + failed + ' failed — see the browser console.', 6000);
+  } else {
+    let msg = '✅ Published ' + done + ' public previews';
+    if (removed) msg += ', removed ' + removed + ' stale';
+    if (skipped) msg += ' (' + skipped + ' skipped: no month or day number)';
+    showToast(msg + '.', 6000);
   }
 };
 

@@ -375,7 +375,9 @@ function updateSeriesBanner() {
 // no devotion body in it) when that collection exists, and falls back to the full
 // devotions collection, which the Firestore rules gate behind a signed-in account.
 async function fetchDevotions() {
-  const sources = ['devotions_public', 'devotions'];
+  // Signed-in members can read the full collection, so prefer it for the richer cards.
+  // Signed-out visitors get the title + scripture mirror only.
+  const sources = currentUser ? ['devotions', 'devotions_public'] : ['devotions_public', 'devotions'];
   for (const name of sources) {
     try {
       const snap = await getDocs(query(collection(db, name), orderBy('day_number', 'asc')));
