@@ -260,3 +260,8 @@ footer {
   section { padding: 4rem 5vw; }
   .footer-grid { grid-template-columns: 1fr; }
 }
+
+
+/* --- LOCKMAN NASB ATTRIBUTION --- */
+.footer-legal { max-width: 70ch; margin: 0.85rem auto 0; font-size: 0.72rem; line-height: 1.5; opacity: 0.6; }
+.footer-legal a { color: inherit; text-decoration: underline; }
