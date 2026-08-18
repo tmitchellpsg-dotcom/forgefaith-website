@@ -272,6 +272,7 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
@@ -284,34 +285,69 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-let allDevotions = [];
-let currentFilter = 'all';
-let activeMonthName = '';
+const auth = getAuth(app);
 
-// The website is verse-only: title, verse reference and verse text are free,
-// the written devotion is app-only. Nothing here opens the full text.
-function isUnlocked(d) {
-  return false;
-}
+let allDevotions = [];
+let activeMonthName = '';
+let currentUser = null;
+let dataReady = false;
+let authMode = 'signup';
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
-// Series data — update as you add months
+// Series data - update as you add months
 const SERIES = [
-  { month: 6,  year: 2026, num: 1, name: 'Forged',  subtitle: 'Being shaped by God — identity, purpose, and the fire that makes you who you are.', next: 'Stand — August 2026' },
-  { month: 7,  year: 2026, num: 2, name: 'Stand',   subtitle: 'Conviction, integrity, and the courage to hold your ground when everything pushes back.', next: 'Lead — September 2026' },
-  { month: 8,  year: 2026, num: 3, name: 'Lead',    subtitle: 'Servant leadership — in your home, on your team, and in your community.', next: 'Endure — October 2026' },
+  { month: 6,  year: 2026, num: 1, name: 'Forged',  subtitle: 'Being shaped by God - identity, purpose, and the fire that makes you who you are.', next: 'Stand - August 2026' },
+  { month: 7,  year: 2026, num: 2, name: 'Stand',   subtitle: 'Conviction, integrity, and the courage to hold your ground when everything pushes back.', next: 'Lead - September 2026' },
+  { month: 8,  year: 2026, num: 3, name: 'Lead',    subtitle: 'Servant leadership - in your home, on your team, and in your community.', next: 'Endure - October 2026' },
   { month: 9,  year: 2026, num: 4, name: 'Endure',  subtitle: 'The long game. Perseverance, faithfulness, and finishing what God started in you.', next: null },
 ];
+
+function esc(v) {
+  return String(v == null ? '' : v)
+    .split('&').join('&amp;')
+    .split('<').join('&lt;')
+    .split('>').join('&gt;')
+    .split('"').join('&quot;');
+}
+
+function injectGateStyles() {
+  if (document.getElementById('ffGateStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'ffGateStyles';
+  s.textContent = [
+    '.dev-gate{grid-column:1/-1;background:var(--dark-3);border:1px solid var(--gold-border);',
+    'border-radius:8px;padding:2.5rem;max-width:560px;margin:0 auto;text-align:center;}',
+    '.dev-gate-eyebrow{font-size:0.7rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin-bottom:0.75rem;}',
+    '.dev-gate h3{font-size:1.5rem;margin-bottom:0.85rem;}',
+    '.dev-gate p.dev-gate-sub{font-size:0.9rem;color:var(--text-muted);line-height:1.8;margin-bottom:1.75rem;}',
+    '.dev-gate-tabs{display:flex;gap:1.5rem;justify-content:center;margin-bottom:1.25rem;}',
+    '.dev-gate-tab{background:none;border:none;cursor:pointer;font-size:0.78rem;letter-spacing:0.12em;',
+    'text-transform:uppercase;color:var(--text-muted);padding:0.25rem 0;border-bottom:1px solid transparent;}',
+    '.dev-gate-tab.active{color:var(--gold);border-bottom-color:var(--gold);}',
+    '.dev-gate input{width:100%;background:var(--dark-4);border:1px solid var(--gold-border);border-radius:4px;',
+    'padding:0.75rem 0.9rem;color:var(--text);font-family:inherit;font-size:0.9rem;margin-bottom:0.75rem;}',
+    '.dev-gate input:focus{outline:none;border-color:var(--gold);}',
+    '.dev-gate-btn{width:100%;border:none;margin-top:0.35rem;cursor:pointer;}',
+    '.dev-gate-google{width:100%;margin-top:0.75rem;background:none;border:1px solid var(--gold-border);',
+    'color:var(--text);border-radius:4px;padding:0.7rem;cursor:pointer;font-family:inherit;font-size:0.85rem;}',
+    '.dev-gate-google:hover{border-color:var(--gold);}',
+    '.dev-gate-error{color:#e06b6b;font-size:0.82rem;margin-top:0.85rem;min-height:1.1rem;}',
+    '.dev-gate-note{font-size:0.78rem;color:var(--text-dim);margin-top:1.25rem;line-height:1.7;}',
+    '.dev-signed-in{font-size:0.78rem;color:var(--text-muted);margin-bottom:1.25rem;}',
+    '.dev-signed-in a{color:var(--gold);}',
+    '@media(max-width:640px){.dev-gate{padding:1.75rem 1.35rem;}}'
+  ].join('');
+  document.head.appendChild(s);
+}
 
 function updateSeriesBanner() {
   const nowParts = window.ffTodayParts
     ? window.ffTodayParts()
     : { monthIndex: new Date().getMonth(), year: new Date().getFullYear() };
-  const currentMonth = nowParts.monthIndex; // 0-indexed (6 = July)
+  const currentMonth = nowParts.monthIndex;
   const currentYear = nowParts.year;
 
-  // Find active series (most recent past or current)
   let activeSeries = SERIES[0];
   for (const s of SERIES) {
     if (s.year < currentYear || (s.year === currentYear && s.month <= currentMonth)) {
@@ -321,12 +357,11 @@ function updateSeriesBanner() {
 
   activeMonthName = monthNames[activeSeries.month];
 
-  document.getElementById('seriesEyebrow').textContent = `Month ${activeSeries.num} · ${monthNames[activeSeries.month]} ${activeSeries.year}`;
+  document.getElementById('seriesEyebrow').textContent = 'Month ' + activeSeries.num + ' - ' + monthNames[activeSeries.month] + ' ' + activeSeries.year;
   document.getElementById('seriesTitle').textContent = activeSeries.name;
   document.getElementById('seriesSubtitle').textContent = activeSeries.subtitle;
-  document.getElementById('seriesNext').textContent = activeSeries.next ? `Next: ${activeSeries.next}` : 'You\'ve completed the full series. More coming soon.';
+  document.getElementById('seriesNext').textContent = activeSeries.next ? 'Next: ' + activeSeries.next : 'You have completed the full series. More coming soon.';
 
-  // Update dots
   for (let i = 1; i <= 4; i++) {
     const dot = document.getElementById('dot' + i);
     if (!dot) continue;
@@ -336,91 +371,154 @@ function updateSeriesBanner() {
   }
 }
 
+// The website only ever needs title + verse. It reads devotions_public (world-readable,
+// no devotion body in it) when that collection exists, and falls back to the full
+// devotions collection, which the Firestore rules gate behind a signed-in account.
+async function fetchDevotions() {
+  const sources = ['devotions_public', 'devotions'];
+  for (const name of sources) {
+    try {
+      const snap = await getDocs(query(collection(db, name), orderBy('day_number', 'asc')));
+      const rows = snap.docs.map(function (docSnap) {
+        const row = docSnap.data();
+        row.id = docSnap.id;
+        return row;
+      });
+      if (rows.length) return rows;
+    } catch (err) {
+      console.warn('Devotions source unavailable: ' + name + ' (' + (err.code || err.message) + ')');
+    }
+  }
+  return null;
+}
+
 async function loadDevotions() {
   updateSeriesBanner();
-  try {
-    const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'));
-    const snapshot = await getDocs(q);
-    const everything = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const rows = await fetchDevotions();
+  dataReady = true;
 
-    // Only show the currently active month's devotions — prevents July/August
-    // (or any two months) from colliding on the same Day 1, Day 2, etc.
-    allDevotions = everything.filter(d => d.month === activeMonthName);
-
-    if (allDevotions.length === 0) {
-      document.getElementById('devotionsGrid').innerHTML = '<div class="loading-state"><p>📖 Devotions launching soon.</p></div>';
-      return;
-    }
+  if (!rows) {
+    allDevotions = [];
+    if (window.renderTodayDevotion) renderTodayDevotion([]);
     renderGrid();
-    if (window.renderTodayDevotion) renderTodayDevotion(allDevotions);
-  } catch(err) {
-    console.error(err);
-    document.getElementById('devotionsGrid').innerHTML = '<div class="loading-state"><p>⚠️ Unable to load devotions. Please try again.</p></div>';
+    return;
   }
+
+  allDevotions = rows.filter(function (d) { return d.month === activeMonthName; });
+  if (window.renderTodayDevotion) renderTodayDevotion(allDevotions);
+  renderGrid();
+}
+
+function gateHtml() {
+  const signup = authMode === 'signup';
+  return '<div class="dev-gate">' +
+    '<p class="dev-gate-eyebrow">Free Account</p>' +
+    '<h3>See the whole month</h3>' +
+    '<p class="dev-gate-sub">Create a free Forge Faith account to see the title and verse for every day this month, plus the Prayer Wall. The written devotion, audio and prayer are in the app.</p>' +
+    '<div class="dev-gate-tabs">' +
+      '<button type="button" class="dev-gate-tab' + (signup ? ' active' : '') + '" onclick="devAuthMode(&quot;signup&quot;)">Create Account</button>' +
+      '<button type="button" class="dev-gate-tab' + (signup ? '' : ' active') + '" onclick="devAuthMode(&quot;signin&quot;)">Sign In</button>' +
+    '</div>' +
+    '<input type="email" id="devAuthEmail" placeholder="your@email.com" autocomplete="email">' +
+    '<input type="password" id="devAuthPassword" placeholder="Password" autocomplete="' + (signup ? 'new-password' : 'current-password') + '">' +
+    '<button type="button" class="btn-primary dev-gate-btn" onclick="devEmailAuth()">' + (signup ? 'Create Account' : 'Sign In') + '</button>' +
+    '<button type="button" class="dev-gate-google" onclick="devGoogleAuth()">Continue with Google</button>' +
+    '<p class="dev-gate-error" id="devAuthError"></p>' +
+    '<p class="dev-gate-note">Already have the app? Sign in with the same email and it all connects.</p>' +
+  '</div>';
 }
 
 function renderGrid() {
   const grid = document.getElementById('devotionsGrid');
-  let filtered = allDevotions;
-  if (currentFilter === 'free') filtered = allDevotions.filter(d => d.day_number === 1);
-  if (currentFilter === 'pro') filtered = allDevotions.filter(d => d.day_number !== 1);
-  grid.innerHTML = filtered.map(d => {
-    const unlocked = isUnlocked(d);
-    const free = d.day_number === 1;
-    return `<div class="dev-card ${!unlocked ? 'locked' : ''}" ${unlocked ? `onclick="openDev('${d.id}')"` : ''}>
-      ${d.image_url
-        ? `<img class="dev-card-img" src="${d.image_url}" alt="${d.title || ''}" loading="lazy">`
-        : `<div class="dev-card-img-placeholder">📖</div>`}
-      <div class="dev-card-body">
-        <p class="dev-day">Day ${d.day_number}</p>
-        ${d.theme ? `<p class="dev-theme">${d.theme}</p>` : ''}
-        <h3>${d.title || 'Untitled'}</h3>
-        ${d.verse_text ? `<p class="dev-verse-full">"${d.verse_text}"</p>` : ''}${d.verse_reference ? `<p class="dev-verse-ref">— ${d.verse_reference} (NASB)</p>` : ''}
+  if (!grid) return;
 
-        <div class="dev-footer">
-          <span class="lock-pill">🔒 Full devotion in the app</span>
-          ${d.audio_url ? `<span class="audio-badge">🎧 Audio</span>` : ''}
-        </div>
-      </div>
-    </div>`;
+  if (!dataReady) return;
+
+  if (!currentUser) {
+    injectGateStyles();
+    grid.innerHTML = gateHtml();
+    return;
+  }
+
+  if (!allDevotions.length) {
+    grid.innerHTML = '<div class="loading-state"><p>Devotions for this month are on the way.</p></div>';
+    return;
+  }
+
+  injectGateStyles();
+  const label = currentUser.displayName || currentUser.email || 'Forger';
+  const header = '<p class="dev-signed-in" style="grid-column:1/-1;">Signed in as <strong>' + esc(label) +
+    '</strong> - <a href="#" onclick="devSignOut();return false;">Sign out</a></p>';
+
+  const cards = allDevotions.map(function (d) {
+    return '<div class="dev-card locked">' +
+      (d.image_url
+        ? '<img class="dev-card-img" src="' + esc(d.image_url) + '" alt="' + esc(d.title || '') + '" loading="lazy">'
+        : '<div class="dev-card-img-placeholder">&#128214;</div>') +
+      '<div class="dev-card-body">' +
+        '<p class="dev-day">Day ' + esc(d.day_number) + '</p>' +
+        (d.theme ? '<p class="dev-theme">' + esc(d.theme) + '</p>' : '') +
+        '<h3>' + esc(d.title || 'Untitled') + '</h3>' +
+        (d.verse_text ? '<p class="dev-verse-full">&ldquo;' + esc(d.verse_text) + '&rdquo;</p>' : '') +
+        (d.verse_reference ? '<p class="dev-verse-ref">&mdash; ' + esc(d.verse_reference) + ' (NASB)</p>' : '') +
+        '<div class="dev-footer">' +
+          '<span class="lock-pill">&#128274; Full devotion in the app</span>' +
+          (d.audio_url ? '<span class="audio-badge">&#127911; Audio</span>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
   }).join('');
+
+  grid.innerHTML = header + cards;
 }
 
-window.filterDevotions = function(filter, btn) {
-  currentFilter = filter;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+window.devAuthMode = function (mode) {
+  authMode = mode;
   renderGrid();
 };
 
-window.openDev = function(id) {
-  const d = allDevotions.find(x => x.id === id);
-  if (!d) return;
-  if (!isUnlocked(d)) return; // safety net — locked days never open, even if clicked programmatically
-  document.getElementById('modalInner').innerHTML = `
-    ${d.image_url ? `<img src="${d.image_url}" alt="${d.title||''}" style="width:100%; border-radius:4px; margin-bottom:1.5rem; object-fit:cover; max-height:240px;">` : ''}
-    <p class="modal-day-tag">Day ${d.day_number}${d.day_number===1?' · Free':''}</p>
-    ${d.theme ? `<p class="modal-theme-tag">${d.theme}</p>` : ''}
-    <h2>${d.title||''}</h2>
-    <div class="modal-verse-block">
-      <p>"${d.verse_text||''}"</p>
-      <span>— ${d.verse_reference||''} (NASB)</span>
-    </div>
-    ${d.audio_url ? `<div class="modal-audio"><p>🎧 Listen to this devotion</p><audio controls src="${d.audio_url}"></audio></div>` : ''}
-    <div class="modal-body">
-      ${d.body_1?`<p>${d.body_1}</p>`:''}
-      ${d.body_2?`<p>${d.body_2}</p>`:''}
-      ${d.body_3?`<p>${d.body_3}</p>`:''} ${(!d.body_1 && !d.body_2 && !d.body_3 && d.devotion_body)?`<p style="white-space:pre-line">${d.devotion_body}</p>`:''}
-    </div>
-    ${d.life_application?`<p class="modal-section-title">Life Application</p><div class="modal-challenge">${d.life_application}</div>`:''}
-    ${d.challenge?`<p class="modal-section-title">Today's Challenge</p><div class="modal-challenge">${d.challenge}</div>`:''}
-    ${d.prayer?`<p class="modal-section-title">Prayer</p><div class="modal-prayer">${d.prayer}</div>`:''}
-    <div class="modal-cta-block">
-      <p>Want the full series? Download Forge Faith to unlock every devotion.</p>
-      <a href="https://apps.apple.com/us/app/id6781935591" target="_blank" rel="noopener" class="btn-primary" onclick="closeModal('devModal')">Download Forge Faith</a>
-    </div>`;
-  openModal('devModal');
+window.devEmailAuth = async function () {
+  const emailEl = document.getElementById('devAuthEmail');
+  const passEl = document.getElementById('devAuthPassword');
+  const errEl = document.getElementById('devAuthError');
+  if (!emailEl || !passEl) return;
+  const email = emailEl.value.trim();
+  const pass = passEl.value;
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Enter your email and password.'; return; }
+  try {
+    if (authMode === 'signup') {
+      await createUserWithEmailAndPassword(auth, email, pass);
+    } else {
+      await signInWithEmailAndPassword(auth, email, pass);
+    }
+  } catch (err) {
+    errEl.textContent = err.message || 'Could not sign in. Please try again.';
+  }
 };
+
+window.devGoogleAuth = async function () {
+  const errEl = document.getElementById('devAuthError');
+  if (errEl) errEl.textContent = '';
+  try {
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  } catch (err) {
+    if (errEl) errEl.textContent = err.message || 'Google sign-in failed.';
+  }
+};
+
+window.devSignOut = async function () {
+  try { await signOut(auth); } catch (err) { console.error(err); }
+};
+
+onAuthStateChanged(auth, function (user) {
+  const hadUser = !!currentUser;
+  currentUser = user;
+  if (!dataReady) return;
+  // Signing in may unlock a source the anonymous read could not reach.
+  if (!hadUser && user) { loadDevotions(); return; }
+  renderGrid();
+});
 
 loadDevotions();
 </script>
