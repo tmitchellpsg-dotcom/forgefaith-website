@@ -161,10 +161,12 @@
 /* phone mockup */
 .phone-wrap { display: flex; justify-content: center; }
 .phone {
-  width: 260px; background: var(--dark-4); border: 2px solid var(--gold-border);
-  border-radius: 36px; padding: 1.5rem 1.25rem 2rem; display: flex; flex-direction: column;
-  align-items: center; gap: 1.1rem; position: relative;
+  width: 268px; background: var(--dark-4); border: 2px solid var(--gold-border);
+  border-radius: 36px; padding: 0.85rem 0.7rem; display: flex; flex-direction: column;
+  align-items: center; gap: 0.6rem; position: relative;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55);
 }
+.phone-shot { width: 100%; display: block; border-radius: 26px; }
 .phone-notch { width: 70px; height: 5px; background: var(--dark-5); border-radius: 10px; margin-bottom: 0.25rem; }
 .phone-label { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); }
 .phone-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--gold); text-align: center; }
@@ -399,14 +401,7 @@ loadPeek();
       <div class="phone-wrap fade-in">
         <div class="phone">
           <div class="phone-notch"></div>
-          <div class="phone-label">Forge Faith · Day 7</div>
-          <div class="phone-title">Lead Like You Mean It</div>
-          <div class="phone-verse-text">"Shepherd the flock of God among you… not lording it over those allotted to your charge." — 1 Pet 5:2</div>
-          <div class="phone-streak-box"><strong>🔥 7</strong><span>Day Streak</span></div>
-          <div class="phone-bar-wrap">
-            <div class="phone-bar-bg"><div class="phone-bar-fill"></div></div>
-          </div>
-          <div class="phone-day-label">Day 7 of 14</div>
+          <img class="phone-shot" src="images/appscreenshot.webp" alt="Forge Faith app home screen showing today's devotion, streak and encouragement" loading="lazy">
         </div>
       </div>
     </div>
