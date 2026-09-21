@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "GCUSR9T8S9.com.forgefaithstudios.app"
+        ],
+        "components": [
+          {
+            "/": "/go/*",
+            "comment": "Share and campaign links"
+          },
+          {
+            "/": "/pages/devotions.html",
+            "comment": "Endure In-App Event link"
+          }
+        ]
+      }
+    ]
+  }
+}
