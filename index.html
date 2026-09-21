@@ -489,32 +489,7 @@ loadPeek();
   </div>
 </footer>
 
-<!-- NOTIFY MODAL -->
-<div class="modal-overlay" id="notifyModal">
-  <div class="modal" style="max-width:480px; text-align:center;">
-    <button class="modal-close" onclick="closeModal('notifyModal')">×</button>
-    <p style="font-size:2.2rem; margin-bottom:1rem;">🔔</p>
-    <h2 style="font-size:1.6rem; margin-bottom:0.75rem;">Be First to Know</h2>
-    <p style="color:var(--text-muted); font-size:0.95rem; line-height:1.8; margin-bottom:1.75rem;">Forge Faith is pending Apple App Store approval. Drop your email and we'll notify you the moment it's live.</p>
-    <div class="form-group" style="text-align:left;">
-      <label>Email</label>
-      <input type="email" id="notifyAppEmail" placeholder="your@email.com">
-    </div>
-    <button class="btn-primary" style="width:100%; border:none; margin-top:0.5rem;" onclick="notifyAppSignup()">Notify Me at Launch</button>
-  </div>
-</div>
-
 <div id="toast"></div>
-<script>
-function notifyAppSignup() {
-  const input = document.getElementById('notifyAppEmail');
-  const email = input.value.trim();
-  if (!email || !email.includes('@')) { showToast('Enter a valid email address.'); return; }
-  input.value = '';
-  closeModal('notifyModal');
-  showToast('✅ You\'re on the list. We\'ll email you the moment Forge Faith goes live.');
-}
-</script>
 <script src="js/main.js"></script>
 </body>
 </html>
