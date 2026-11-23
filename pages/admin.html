@@ -216,6 +216,86 @@ body { background: var(--dark); }
 .audio-current { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; }
 .audio-current audio { width: 100%; margin-top: 0.4rem; }
 
+.audio-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.btn-record {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: var(--dark-4); border: 1px solid var(--gold-border);
+  color: var(--text-muted); padding: 0.55rem 1.1rem; border-radius: var(--radius);
+  font-family: inherit; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+  min-height: 44px;
+}
+.btn-record:hover { border-color: var(--gold); color: var(--gold); }
+.btn-record.live { border-color: #e88; color: #e88; }
+.btn-record:disabled { opacity: 0.55; cursor: not-allowed; }
+.rec-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: 0 0 auto;
+}
+.btn-record .rec-dot { background: var(--gold); }
+.btn-record.live .rec-dot { background: #e88; }
+.rec-dot.on { animation: rec-pulse 1.2s ease-out infinite; background: #e88; }
+@keyframes rec-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(232,136,136,0.55); }
+  100% { box-shadow: 0 0 0 8px rgba(232,136,136,0); }
+}
+.recorder-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.45rem; line-height: 1.45; }
+.recorder-error { color: #e88; font-size: 0.8rem; margin-top: 0.5rem; line-height: 1.45; }
+.recorder-panel[hidden],
+.recorder-review[hidden],
+.recorder-live[hidden],
+.recorder-meter[hidden],
+.recorder-error[hidden],
+.recorder-controls button[hidden] { display: none !important; }
+.recorder-panel {
+  background: var(--dark-4); border: 1px solid var(--gold-border); border-radius: 8px;
+  padding: 1rem; margin-bottom: 1.25rem;
+}
+.teleprompter-label {
+  font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 0.45rem;
+}
+.teleprompter {
+  max-height: 40vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--dark); border: 1px solid var(--gold-border); border-radius: 6px;
+  padding: 1.15rem 1.25rem; margin-bottom: 0.9rem;
+}
+.teleprompter::-webkit-scrollbar { width: 8px; }
+.teleprompter::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 4px; }
+.tp-title { font-family: 'Playfair Display', serif; font-size: 1.85rem; line-height: 1.2; margin-bottom: 0.35rem; }
+.tp-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+.tp-label { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 1.1rem 0 0.35rem; }
+.tp-scripture { font-size: 1.28rem; line-height: 1.55; color: var(--gold-light); white-space: pre-wrap; }
+.tp-body { font-size: 1.32rem; line-height: 1.65; white-space: pre-wrap; color: var(--text); }
+.tp-empty { font-size: 1rem; color: var(--text-muted); }
+.recorder-meter {
+  display: flex; align-items: flex-end; gap: 3px; height: 44px;
+  padding: 0.35rem; background: var(--dark); border: 1px solid var(--gold-border); border-radius: 4px;
+}
+.recorder-meter span {
+  flex: 1; height: 8%; background: var(--gold); border-radius: 2px; opacity: 0.92;
+}
+.recorder-status {
+  display: flex; align-items: center; gap: 0.65rem; margin: 0.75rem 0;
+}
+.recorder-timer {
+  font-variant-numeric: tabular-nums; font-size: 1.6rem; font-weight: 600;
+  letter-spacing: 0.04em; min-width: 4.6rem;
+}
+.recorder-state-label {
+  font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold);
+}
+.recorder-controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.recorder-controls button { font-family: inherit; min-height: 44px; }
+.recorder-controls .btn-save { flex: 0 0 auto; padding: 0.7rem 1.15rem; }
+.recorder-review audio,
+.admin-audio {
+  width: 100%; accent-color: var(--gold); color-scheme: dark;
+}
+.recorder-review,
+.recorder-note { scroll-margin-bottom: 28px; }
+.recorder-review audio { margin: 0.2rem 0 0.75rem; }
+.admin-audio { display: block; margin-top: 0.5rem; }
+.recorder-note { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.7rem; line-height: 1.45; }
+
 select.form-select {
   width: 100%; background: var(--dark-4); border: 1px solid var(--gold-border);
   color: var(--text); padding: 0.6rem 0.75rem; border-radius: var(--radius); font-size: 0.88rem;
@@ -224,6 +304,9 @@ select.form-select {
 @media (max-width: 600px) {
   .editor-row, .editor-row.triple { grid-template-columns: 1fr; }
   .editor-modal { padding: 1.5rem; }
+  .tp-title { font-size: 1.55rem; }
+  .tp-body, .tp-scripture { font-size: 1.2rem; }
+  .teleprompter { max-height: 38vh; padding: 1rem; }
 }
 </style>
 </head>
@@ -405,12 +488,46 @@ select.form-select {
         <div class="editor-upload-preview" id="audioPreviewBox" style="aspect-ratio:auto; min-height:auto; padding:1.5rem;">
           <span class="upload-placeholder" id="audioPlaceholderText">No audio uploaded</span>
         </div>
-        <label class="file-input-btn">
-          Choose Audio
-          <input type="file" id="f_audio_file" accept="audio/*" style="display:none;" onchange="handleAudioSelect(this)">
-        </label>
+        <div class="audio-actions">
+          <label class="file-input-btn">
+            Choose Audio
+            <input type="file" id="f_audio_file" accept="audio/*" style="display:none;" onchange="handleAudioSelect(this)">
+          </label>
+          <button type="button" class="btn-record" id="recordBtn" onclick="startDevotionRecording()">
+            <span class="rec-dot" aria-hidden="true"></span>
+            Record
+          </button>
+        </div>
+        <p class="recorder-hint">Record here, or choose a file. Recordings are saved as MP3 so the app can keep playing them.</p>
+        <p class="recorder-error" id="recorderError" hidden></p>
         <p class="upload-progress" id="audioUploadProgress">Uploading...</p>
       </div>
+    </div>
+
+    <div class="recorder-panel" id="recorderPanel" hidden>
+      <p class="teleprompter-label">Devotion text</p>
+      <div class="teleprompter" id="teleprompter"></div>
+      <div class="recorder-meter" id="recorderMeter" aria-hidden="true"></div>
+      <div class="recorder-status">
+        <span class="rec-dot" id="recDot" aria-hidden="true"></span>
+        <span class="recorder-timer" id="recorderTimer">00:00</span>
+        <span class="recorder-state-label" id="recorderStateLabel"></span>
+      </div>
+      <div class="recorder-live" id="recorderLiveControls">
+        <div class="recorder-controls">
+          <button type="button" class="file-input-btn" id="recorderPauseBtn" onclick="toggleDevotionRecordingPause()">Pause</button>
+          <button type="button" class="btn-save" id="recorderStopBtn" onclick="stopDevotionRecording()">Stop</button>
+        </div>
+      </div>
+      <div class="recorder-review" id="recorderReview" hidden>
+        <audio id="recorderPlayback" controls playsinline preload="auto"></audio>
+        <div class="recorder-controls">
+          <button type="button" class="file-input-btn" id="recorderRerecordBtn" onclick="startDevotionRecording()">Re-record</button>
+          <button type="button" class="file-input-btn" id="recorderDiscardBtn" onclick="discardDevotionRecording()">Discard take</button>
+          <button type="button" class="btn-save" id="recorderSaveBtn" onclick="saveDevotionRecording()">Save recording</button>
+        </div>
+      </div>
+      <p class="recorder-note" id="recorderNote"></p>
     </div>
 
     <div class="form-group">
@@ -502,6 +619,35 @@ let currentEditId = null;
 let pendingImageFile = null;
 let pendingAudioFile = null;
 let statusFilter = 'all';
+
+// In-browser recorder. Takes are re-encoded to MP3 before upload so they match
+// the files already in devotion_audio/ (128 kbps, 44.1 kHz, mono, audio/mpeg).
+let encodeMonoMp3 = null;
+let recorderPhase = 'idle';
+let recorderBusy = false;
+let recorderGeneration = 0;
+let mediaStream = null;
+let meterContext = null;
+let analyser = null;
+let meterFrame = 0;
+let meterToken = 0;
+let recorder = null;
+let segmentBlobs = [];
+let accumulatedMs = 0;
+let segmentStartedAt = 0;
+let timerHandle = 0;
+let wakeLock = null;
+let localAudioUrl = null;
+let currentTakeFile = null;
+let takeSaved = false;
+
+async function loadEncoder() {
+  if (!encodeMonoMp3) {
+    const mod = await import('../js/mp3-encode.js');
+    encodeMonoMp3 = mod.encodeMonoMp3;
+  }
+  return encodeMonoMp3;
+}
 
 // ───── AUTH ─────
 window.doLogin = async function() {
@@ -754,11 +900,13 @@ function renderGrid() {
 
 // ───── EDITOR ─────
 window.openEditor = function(id) {
+  shutdownRecorder();
   currentEditId = id;
   pendingImageFile = null;
   pendingAudioFile = null;
   document.getElementById('imageUploadProgress').classList.remove('show');
   document.getElementById('audioUploadProgress').classList.remove('show');
+  showRecorderError('');
 
   if (id) {
     const d = allDevotions.find(x => x.id === id);
@@ -780,10 +928,7 @@ window.openEditor = function(id) {
     const imgBox = document.getElementById('imagePreviewBox');
     imgBox.innerHTML = d.image_url ? `<img src="${d.image_url}">` : `<span class="upload-placeholder">No image uploaded</span>`;
 
-    const audioBox = document.getElementById('audioPreviewBox');
-    audioBox.innerHTML = d.audio_url
-      ? `<div style="width:100%;"><span class="upload-placeholder">Current audio:</span><audio controls src="${d.audio_url}" style="width:100%; margin-top:0.5rem;"></audio></div>`
-      : `<span class="upload-placeholder">No audio uploaded</span>`;
+    renderAudioPreview(d.audio_url || '', d.audio_url ? 'Current audio' : '');
   } else {
     document.getElementById('editorTitle').textContent = 'New Devotion';
     ['f_day_number','f_unlock_date','f_title','f_theme','f_verse_reference','f_verse_text','f_devotion_body','f_life_application','f_challenge','f_prayer'].forEach(id => document.getElementById(id).value = '');
@@ -791,13 +936,16 @@ window.openEditor = function(id) {
     document.getElementById('f_is_complete').checked = false;
     document.getElementById('deleteBtn').style.display = 'none';
     document.getElementById('imagePreviewBox').innerHTML = `<span class="upload-placeholder">No image uploaded</span>`;
-    document.getElementById('audioPreviewBox').innerHTML = `<span class="upload-placeholder">No audio uploaded</span>`;
+    renderAudioPreview('', '');
   }
   document.getElementById('editorOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 };
 
 window.closeEditor = function() {
+  if (!confirmCloseRecorder()) return;
+  shutdownRecorder();
+  pendingAudioFile = null;
   document.getElementById('editorOverlay').classList.remove('open');
   document.body.style.overflow = '';
 };
@@ -822,17 +970,714 @@ window.handleImageSelect = function(input) {
 };
 
 window.handleAudioSelect = function(input) {
-  const file = input.files[0];
+  const file = input.files && input.files[0];
   if (!file) return;
+  if (recorderPhase !== 'idle') shutdownRecorder();
   pendingAudioFile = file;
-  document.getElementById('audioPreviewBox').innerHTML = `<span class="upload-placeholder">Selected: ${file.name}</span>`;
+  currentTakeFile = null;
+  takeSaved = false;
+  revokeLocalAudio();
+  localAudioUrl = URL.createObjectURL(file);
+  renderAudioPreview(localAudioUrl, 'Selected: ' + file.name);
+  showRecorderError('');
 };
+
+function audioContentType(file) {
+  if (file && file.type && file.type.indexOf('audio/') === 0) return file.type;
+  const name = (file && file.name ? file.name : '').toLowerCase();
+  if (name.endsWith('.mp3')) return 'audio/mpeg';
+  if (name.endsWith('.wav')) return 'audio/wav';
+  if (name.endsWith('.m4a') || name.endsWith('.mp4')) return 'audio/mp4';
+  if (name.endsWith('.aac')) return 'audio/aac';
+  return (file && file.type) || 'application/octet-stream';
+}
+
+// Same object path the file picker already uses: devotion_audio/day_{n}_{time}_{filename}
+async function putDevotionAudio(file, dayNumber) {
+  const day = Number.isNaN(Number(dayNumber)) ? 0 : Number(dayNumber);
+  const audioRef = ref(storage, `devotion_audio/day_${day}_${Date.now()}_${file.name}`);
+  await uploadBytes(audioRef, file, { contentType: audioContentType(file) });
+  return getDownloadURL(audioRef);
+}
+
+function renderAudioPreview(src, label) {
+  const box = document.getElementById('audioPreviewBox');
+  box.replaceChildren();
+  if (!src) {
+    const placeholder = document.createElement('span');
+    placeholder.className = 'upload-placeholder';
+    placeholder.textContent = 'No audio uploaded';
+    box.appendChild(placeholder);
+    return;
+  }
+  const wrap = document.createElement('div');
+  wrap.style.width = '100%';
+  const caption = document.createElement('span');
+  caption.className = 'upload-placeholder';
+  caption.textContent = label || 'Audio';
+  const audio = document.createElement('audio');
+  audio.controls = true;
+  audio.className = 'admin-audio';
+  audio.setAttribute('playsinline', '');
+  audio.preload = 'metadata';
+  audio.src = src;
+  wrap.appendChild(caption);
+  wrap.appendChild(audio);
+  box.appendChild(wrap);
+}
+
+function revokeLocalAudio() {
+  if (localAudioUrl) {
+    URL.revokeObjectURL(localAudioUrl);
+    localAudioUrl = null;
+  }
+}
+
+function showRecorderError(message) {
+  const el = document.getElementById('recorderError');
+  if (!el) return;
+  el.hidden = !message;
+  el.textContent = message || '';
+}
+
+function micErrorMessage(err) {
+  const name = err && err.name ? err.name : '';
+  if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+    return 'Microphone access was blocked. Allow the microphone for this site in your browser settings, then tap Record again. Choose Audio still works.';
+  }
+  if (name === 'SecurityError') {
+    return 'The browser blocked the microphone. Allow microphone access for this site, then tap Record again.';
+  }
+  if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+    return 'No microphone was found on this device. Use Choose Audio to upload a file instead.';
+  }
+  if (name === 'NotReadableError' || name === 'TrackStartError' || name === 'AbortError') {
+    return 'The microphone could not be opened. Close other apps using it, then tap Record again.';
+  }
+  return 'Could not start recording. Use Choose Audio to upload a file instead.';
+}
+
+function supportedRecorderMime() {
+  if (typeof MediaRecorder === 'undefined') return null;
+  const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
+  for (let i = 0; i < types.length; i++) {
+    try {
+      if (MediaRecorder.isTypeSupported(types[i])) return types[i];
+    } catch (err) { /* this browser has no mime check */ }
+  }
+  return '';
+}
+
+function formatClock(ms) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+}
+
+function currentElapsed() {
+  if (recorderPhase === 'recording') return accumulatedMs + (performance.now() - segmentStartedAt);
+  return accumulatedMs;
+}
+
+function startTimer() {
+  stopTimer();
+  const el = document.getElementById('recorderTimer');
+  const tick = () => {
+    if (el) el.textContent = formatClock(currentElapsed());
+    timerHandle = window.setTimeout(tick, 200);
+  };
+  tick();
+}
+
+function stopTimer() {
+  if (timerHandle) window.clearTimeout(timerHandle);
+  timerHandle = 0;
+}
+
+function ensureMeterBars() {
+  const meter = document.getElementById('recorderMeter');
+  if (!meter || meter.childElementCount) return;
+  for (let i = 0; i < 20; i++) meter.appendChild(document.createElement('span'));
+}
+
+function connectMeter(stream) {
+  ensureMeterBars();
+  const token = ++meterToken;
+  const source = meterContext.createMediaStreamSource(stream);
+  analyser = meterContext.createAnalyser();
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.8;
+  source.connect(analyser);
+  const bins = new Uint8Array(analyser.frequencyBinCount);
+  const bars = document.querySelectorAll('#recorderMeter span');
+  const draw = () => {
+    if (token !== meterToken || !analyser) return;
+    meterFrame = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(bins);
+    const step = Math.max(1, Math.floor(bins.length / bars.length));
+    bars.forEach((bar, i) => {
+      let sum = 0;
+      for (let j = 0; j < step; j++) sum += bins[i * step + j] || 0;
+      const avg = sum / step / 255;
+      bar.style.height = Math.max(6, Math.round(avg * 100)) + '%';
+    });
+  };
+  draw();
+}
+
+function stopMeter() {
+  meterToken += 1;
+  analyser = null;
+  if (meterFrame) cancelAnimationFrame(meterFrame);
+  meterFrame = 0;
+  if (meterContext && meterContext.state !== 'closed') {
+    meterContext.close().catch(() => {});
+  }
+  meterContext = null;
+}
+
+function releaseMic() {
+  if (mediaStream) {
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+  stopMeter();
+  if (wakeLock) {
+    wakeLock.release().catch(() => {});
+    wakeLock = null;
+  }
+}
+
+async function acquireWakeLock() {
+  try {
+    if (navigator.wakeLock && document.visibilityState === 'visible') {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (err) { /* screen lock is optional */ }
+}
+
+function setRecorderPhase(phase) {
+  recorderPhase = phase;
+  const panel = document.getElementById('recorderPanel');
+  const live = document.getElementById('recorderLiveControls');
+  const review = document.getElementById('recorderReview');
+  const meter = document.getElementById('recorderMeter');
+  const pauseBtn = document.getElementById('recorderPauseBtn');
+  const stopBtn = document.getElementById('recorderStopBtn');
+  const dot = document.getElementById('recDot');
+  const label = document.getElementById('recorderStateLabel');
+  const recordBtn = document.getElementById('recordBtn');
+  const timer = document.getElementById('recorderTimer');
+
+  const active = phase !== 'idle';
+  if (panel) panel.hidden = !active;
+  if (live) live.hidden = phase !== 'recording' && phase !== 'paused' && phase !== 'encoding';
+  if (review) review.hidden = phase !== 'review';
+  if (meter) meter.hidden = phase === 'idle' || phase === 'review';
+
+  if (pauseBtn) pauseBtn.disabled = phase === 'encoding';
+  if (stopBtn) stopBtn.disabled = phase === 'encoding';
+  if (recordBtn) {
+    recordBtn.disabled = phase === 'recording' || phase === 'paused' || phase === 'encoding';
+    recordBtn.classList.toggle('live', phase === 'recording');
+  }
+  if (dot) dot.classList.toggle('on', phase === 'recording');
+
+  if (phase === 'recording') {
+    if (label) label.textContent = 'Recording';
+    if (pauseBtn) pauseBtn.textContent = 'Pause';
+  } else if (phase === 'paused') {
+    if (label) label.textContent = 'Paused';
+    if (pauseBtn) pauseBtn.textContent = 'Resume';
+  } else if (phase === 'encoding') {
+    if (label) label.textContent = 'Preparing MP3…';
+  } else if (phase === 'review') {
+    if (label) label.textContent = 'Take ready';
+  } else {
+    if (label) label.textContent = '';
+    if (timer) timer.textContent = '00:00';
+    stopTimer();
+  }
+}
+
+function appendTeleprompterText(root, className, text) {
+  const p = document.createElement('p');
+  p.className = className;
+  p.textContent = text;
+  root.appendChild(p);
+}
+
+function renderTeleprompter() {
+  const root = document.getElementById('teleprompter');
+  if (!root) return;
+  root.replaceChildren();
+  const title = document.getElementById('f_title').value.trim();
+  const theme = document.getElementById('f_theme').value.trim();
+  const reference = document.getElementById('f_verse_reference').value.trim();
+  const verse = document.getElementById('f_verse_text').value.trim();
+  const body = document.getElementById('f_devotion_body').value.trim();
+  const application = document.getElementById('f_life_application').value.trim();
+  const challenge = document.getElementById('f_challenge').value.trim();
+  const prayer = document.getElementById('f_prayer').value.trim();
+  const day = document.getElementById('f_day_number').value.trim();
+  const month = document.getElementById('f_month').value.trim();
+
+  if (title) appendTeleprompterText(root, 'tp-title', title);
+  const meta = [month, day ? 'Day ' + day : '', theme].filter(Boolean).join(' · ');
+  if (meta) appendTeleprompterText(root, 'tp-meta', meta);
+  if (reference) appendTeleprompterText(root, 'tp-label', reference);
+  if (verse) appendTeleprompterText(root, 'tp-scripture', verse);
+  if (body) {
+    appendTeleprompterText(root, 'tp-label', 'Devotion');
+    appendTeleprompterText(root, 'tp-body', body);
+  }
+  if (application) {
+    appendTeleprompterText(root, 'tp-label', 'Life application');
+    appendTeleprompterText(root, 'tp-body', application);
+  }
+  if (challenge) {
+    appendTeleprompterText(root, 'tp-label', "Today's challenge");
+    appendTeleprompterText(root, 'tp-body', challenge);
+  }
+  if (prayer) {
+    appendTeleprompterText(root, 'tp-label', 'Prayer');
+    appendTeleprompterText(root, 'tp-body', prayer);
+  }
+  if (!root.childElementCount) {
+    appendTeleprompterText(root, 'tp-empty', 'This devotion has no text yet. You can still record.');
+  }
+  root.scrollTop = 0;
+}
+
+function beginSegment() {
+  const chunks = [];
+  const mime = supportedRecorderMime();
+  let rec;
+  try {
+    rec = mime ? new MediaRecorder(mediaStream, { mimeType: mime }) : new MediaRecorder(mediaStream);
+  } catch (err) {
+    rec = new MediaRecorder(mediaStream);
+  }
+  rec._chunks = chunks;
+  rec.addEventListener('dataavailable', (event) => {
+    if (event.data && event.data.size > 0) chunks.push(event.data);
+  });
+  rec.addEventListener('error', () => {
+    showRecorderError('The recording hit an error. Tap Stop to keep what was captured, or Record to start again.');
+  });
+  rec.start();
+  recorder = rec;
+  segmentStartedAt = performance.now();
+}
+
+function blobFromRecorder(rec) {
+  if (!rec || !rec._chunks || !rec._chunks.length) return null;
+  const type = rec.mimeType || rec._chunks[0].type || 'audio/webm';
+  const blob = new Blob(rec._chunks, { type });
+  rec._chunks = [];
+  return blob.size ? blob : null;
+}
+
+function finishSegment() {
+  const rec = recorder;
+  if (!rec || rec.state === 'inactive') return Promise.resolve(blobFromRecorder(rec));
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      // Give Safari a moment to deliver the last dataavailable chunk.
+      setTimeout(() => resolve(blobFromRecorder(rec)), 60);
+    };
+    rec.addEventListener('stop', finish, { once: true });
+    try { rec.stop(); }
+    catch (err) { finish(); }
+    setTimeout(finish, 3000);
+  });
+}
+
+async function captureMic() {
+  const attempts = [
+    { audio: { echoCancellation: true, noiseSuppression: true } },
+    { audio: true }
+  ];
+  let lastError = null;
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(attempts[i]);
+    } catch (err) {
+      lastError = err;
+      const name = err && err.name;
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError' || name === 'SecurityError') throw err;
+    }
+  }
+  throw lastError || new Error('Microphone unavailable');
+}
+
+function confirmCloseRecorder() {
+  if (recorderPhase === 'recording' || recorderPhase === 'paused') {
+    return confirm('Close and discard the recording in progress?');
+  }
+  if (recorderPhase === 'encoding') {
+    return confirm('The recording is still being prepared. Close and discard it?');
+  }
+  if (recorderPhase === 'review' && currentTakeFile && !takeSaved) {
+    return confirm('Close without saving this recording?');
+  }
+  return true;
+}
+
+function shutdownRecorder() {
+  recorderGeneration += 1;
+  recorderBusy = false;
+  if (recorder && recorder.state !== 'inactive') {
+    try { recorder.stop(); } catch (err) { /* already stopped */ }
+  }
+  recorder = null;
+  segmentBlobs = [];
+  accumulatedMs = 0;
+  currentTakeFile = null;
+  takeSaved = false;
+  releaseMic();
+  stopTimer();
+  const playback = document.getElementById('recorderPlayback');
+  if (playback) {
+    playback.pause();
+    playback.removeAttribute('src');
+  }
+  revokeLocalAudio();
+  const note = document.getElementById('recorderNote');
+  if (note) note.textContent = '';
+  setRecorderPhase('idle');
+}
+
+function restoreExistingAudioPreview() {
+  const existing = currentEditId ? allDevotions.find(item => item.id === currentEditId) : null;
+  if (pendingAudioFile && pendingAudioFile !== currentTakeFile) {
+    revokeLocalAudio();
+    localAudioUrl = URL.createObjectURL(pendingAudioFile);
+    renderAudioPreview(localAudioUrl, 'Selected: ' + pendingAudioFile.name);
+    return;
+  }
+  revokeLocalAudio();
+  if (existing && existing.audio_url) renderAudioPreview(existing.audio_url, 'Current audio');
+  else renderAudioPreview('', '');
+}
+
+async function recordedBlobsToMp3(blobs, onProgress) {
+  const usable = blobs.filter(blob => blob && blob.size > 0);
+  if (!usable.length) throw new Error('No audio was captured.');
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const decodeCtx = new AudioCtx();
+  try {
+    const buffers = [];
+    for (let i = 0; i < usable.length; i++) {
+      const raw = await usable[i].arrayBuffer();
+      buffers.push(await decodeCtx.decodeAudioData(raw.slice(0)));
+    }
+    const duration = buffers.reduce((sum, buffer) => sum + buffer.duration, 0);
+    if (duration < 0.15) throw new Error('That recording was too short.');
+    const sampleRate = 44100;
+    const length = Math.ceil(duration * sampleRate);
+    const offline = new OfflineAudioContext(1, length, sampleRate);
+    let when = 0;
+    buffers.forEach((buffer) => {
+      const source = offline.createBufferSource();
+      source.buffer = buffer;
+      source.connect(offline.destination);
+      source.start(when);
+      when += buffer.duration;
+    });
+    const rendered = await offline.startRendering();
+    const pcm = new Float32Array(rendered.getChannelData(0));
+    const encode = await loadEncoder();
+    const mp3Blob = await encode(pcm, sampleRate, onProgress);
+    return new File([mp3Blob], 'recording.mp3', { type: 'audio/mpeg', lastModified: Date.now() });
+  } finally {
+    decodeCtx.close().catch(() => {});
+  }
+}
+
+async function encodeAndReview() {
+  const generation = recorderGeneration;
+  const blobs = segmentBlobs.slice();
+  segmentBlobs = [];
+  try {
+    const file = await recordedBlobsToMp3(blobs, (progress) => {
+      if (generation !== recorderGeneration) return;
+      const label = document.getElementById('recorderStateLabel');
+      if (label) label.textContent = 'Preparing MP3… ' + Math.round(progress * 100) + '%';
+    });
+    if (generation !== recorderGeneration) return;
+    currentTakeFile = file;
+    pendingAudioFile = file;
+    takeSaved = false;
+    const input = document.getElementById('f_audio_file');
+    if (input) input.value = '';
+    revokeLocalAudio();
+    localAudioUrl = URL.createObjectURL(file);
+    const playback = document.getElementById('recorderPlayback');
+    playback.src = localAudioUrl;
+    renderAudioPreview(localAudioUrl, 'Recorded take');
+    const kb = file.size / 1024;
+    const sizeLabel = kb >= 1024 ? (kb / 1024).toFixed(1) + ' MB' : Math.max(1, Math.round(kb)) + ' KB';
+    document.getElementById('recorderNote').textContent =
+      'MP3 · ' + sizeLabel + ' · 44.1 kHz mono, the same format as the other devotion audio. Save the recording to attach it. The app keeps playing the previous audio until you do.';
+    const discardBtn = document.getElementById('recorderDiscardBtn');
+    const saveTakeBtn = document.getElementById('recorderSaveBtn');
+    if (discardBtn) discardBtn.hidden = false;
+    if (saveTakeBtn) {
+      saveTakeBtn.disabled = false;
+      saveTakeBtn.textContent = 'Save recording';
+    }
+    setRecorderPhase('review');
+    const note = document.getElementById('recorderNote');
+    if (note) note.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  } catch (err) {
+    if (generation !== recorderGeneration) return;
+    console.error(err);
+    setRecorderPhase('idle');
+    const tooShort = err && err.message === 'That recording was too short.';
+    showRecorderError(tooShort
+      ? 'That recording was too short. Record a little longer, then tap Stop.'
+      : 'Could not prepare that take as an MP3. Please record again, or use Choose Audio to upload a file.');
+  }
+}
+
+window.startDevotionRecording = async function() {
+  if (recorderPhase === 'recording' || recorderPhase === 'paused' || recorderPhase === 'encoding' || recorderBusy) return;
+  showRecorderError('');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+    showRecorderError('This browser cannot record audio. Use Choose Audio to upload a file, or open this page in Chrome or Safari.');
+    return;
+  }
+  if (!window.isSecureContext) {
+    showRecorderError('Recording needs a secure https connection. Open the admin page over https and try again.');
+    return;
+  }
+
+  const replacingTake = recorderPhase === 'review';
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) {
+    showRecorderError('This browser cannot record audio. Use Choose Audio to upload a file.');
+    return;
+  }
+  // Created inside the tap, before the first await, so iOS Safari will start audio.
+  if (!meterContext || meterContext.state === 'closed') meterContext = new AudioCtx();
+  const resumePromise = meterContext.resume();
+
+  let stream;
+  try {
+    stream = await captureMic();
+    await resumePromise;
+  } catch (err) {
+    const name = err && err.name;
+    if (name !== 'NotAllowedError' && name !== 'PermissionDeniedError' && name !== 'SecurityError') console.error(err);
+    showRecorderError(micErrorMessage(err));
+    return;
+  }
+
+  mediaStream = stream;
+  segmentBlobs = [];
+  accumulatedMs = 0;
+  const track = stream.getAudioTracks()[0];
+  if (track) {
+    track.addEventListener('ended', () => {
+      if (recorderPhase === 'recording' || recorderPhase === 'paused') {
+        showRecorderError('The microphone stopped. Keeping the audio captured so far.');
+        window.stopDevotionRecording();
+      }
+    });
+  }
+
+  try {
+    connectMeter(stream);
+    beginSegment();
+  } catch (err) {
+    console.error(err);
+    releaseMic();
+    showRecorderError('Could not start the recorder in this browser. Use Choose Audio to upload a file.');
+    return;
+  }
+
+  if (replacingTake) {
+    if (pendingAudioFile === currentTakeFile) pendingAudioFile = null;
+    currentTakeFile = null;
+    takeSaved = false;
+    const playback = document.getElementById('recorderPlayback');
+    if (playback) {
+      playback.pause();
+      playback.removeAttribute('src');
+    }
+    restoreExistingAudioPreview();
+  }
+
+  setRecorderPhase('recording');
+  renderTeleprompter();
+  startTimer();
+  acquireWakeLock();
+  const panel = document.getElementById('recorderPanel');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+
+window.toggleDevotionRecordingPause = async function() {
+  if (recorderBusy) return;
+  if (recorderPhase === 'recording') {
+    recorderBusy = true;
+    const generation = recorderGeneration;
+    const pauseBtn = document.getElementById('recorderPauseBtn');
+    if (pauseBtn) pauseBtn.disabled = true;
+    accumulatedMs += performance.now() - segmentStartedAt;
+    setRecorderPhase('paused');
+    try {
+      const blob = await finishSegment();
+      if (generation !== recorderGeneration) return;
+      if (blob) segmentBlobs.push(blob);
+      if (recorderPhase === 'paused') renderTeleprompter();
+    } catch (err) {
+      console.error(err);
+      showRecorderError('Could not pause the recording. Tap Stop to keep what was captured.');
+    } finally {
+      recorderBusy = false;
+      if (pauseBtn && recorderPhase === 'paused') pauseBtn.disabled = false;
+    }
+    return;
+  }
+  if (recorderPhase === 'paused') {
+    try {
+      beginSegment();
+      setRecorderPhase('recording');
+    } catch (err) {
+      console.error(err);
+      showRecorderError('Could not resume. Tap Stop to keep what was captured, or Record to start again.');
+    }
+  }
+};
+
+window.stopDevotionRecording = async function() {
+  if (recorderBusy) return;
+  if (recorderPhase !== 'recording' && recorderPhase !== 'paused') return;
+  recorderBusy = true;
+  showRecorderError('');
+  const generation = recorderGeneration;
+  try {
+    if (recorderPhase === 'recording') {
+      accumulatedMs += performance.now() - segmentStartedAt;
+      setRecorderPhase('encoding');
+      const blob = await finishSegment();
+      if (generation !== recorderGeneration) return;
+      if (blob) segmentBlobs.push(blob);
+    } else {
+      setRecorderPhase('encoding');
+    }
+    if (generation !== recorderGeneration) return;
+    releaseMic();
+    stopTimer();
+    const timer = document.getElementById('recorderTimer');
+    if (timer) timer.textContent = formatClock(accumulatedMs);
+    await encodeAndReview();
+  } finally {
+    recorderBusy = false;
+  }
+};
+
+window.discardDevotionRecording = function() {
+  if (pendingAudioFile === currentTakeFile) pendingAudioFile = null;
+  currentTakeFile = null;
+  takeSaved = false;
+  const playback = document.getElementById('recorderPlayback');
+  if (playback) {
+    playback.pause();
+    playback.removeAttribute('src');
+  }
+  restoreExistingAudioPreview();
+  const note = document.getElementById('recorderNote');
+  if (note) note.textContent = '';
+  setRecorderPhase('idle');
+  showRecorderError('');
+};
+
+window.saveDevotionRecording = async function() {
+  if (!currentTakeFile || recorderPhase !== 'review') return;
+  pendingAudioFile = currentTakeFile;
+  const saveTakeBtn = document.getElementById('recorderSaveBtn');
+  const note = document.getElementById('recorderNote');
+
+  if (!currentEditId) {
+    if (note) note.textContent = 'This take will upload when you save the devotion. It is an MP3, the same format the app already plays.';
+    showToast('Recording is ready. Save the devotion to upload it.', 4500);
+    return;
+  }
+
+  if (saveTakeBtn) {
+    saveTakeBtn.disabled = true;
+    saveTakeBtn.textContent = 'Saving…';
+  }
+  const progress = document.getElementById('audioUploadProgress');
+  progress.classList.add('show');
+  try {
+    const dayNum = parseInt(document.getElementById('f_day_number').value, 10);
+    const url = await putDevotionAudio(currentTakeFile, Number.isNaN(dayNum) ? 0 : dayNum);
+    // Audio only. Publish state, text, and the image stay as they are.
+    await updateDoc(doc(db, 'devotions', currentEditId), { audio_url: url });
+    const existing = allDevotions.find(item => item.id === currentEditId);
+    if (existing) existing.audio_url = url;
+    pendingAudioFile = null;
+    takeSaved = true;
+    revokeLocalAudio();
+    renderAudioPreview(url, 'Saved audio');
+    const playback = document.getElementById('recorderPlayback');
+    if (playback) playback.src = url;
+    if (saveTakeBtn) saveTakeBtn.textContent = 'Saved';
+    const discardBtn = document.getElementById('recorderDiscardBtn');
+    if (discardBtn) discardBtn.hidden = true;
+    if (note) note.textContent = 'Saved the audio only. Other edits in this form stay here until you tap Save Devotion.';
+    renderGrid();
+    showToast('Audio saved.');
+  } catch (err) {
+    console.error(err);
+    if (saveTakeBtn) {
+      saveTakeBtn.disabled = false;
+      saveTakeBtn.textContent = 'Save recording';
+    }
+    showRecorderError('The recording is still here. Try Save recording again, or use Save Devotion.');
+    showToast('Could not save the recording: ' + (err && err.message ? err.message : 'unknown error'), 5000);
+  } finally {
+    progress.classList.remove('show');
+  }
+};
+
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && (recorderPhase === 'recording' || recorderPhase === 'paused')) {
+    acquireWakeLock();
+  }
+});
+
+window.addEventListener('pagehide', () => {
+  if (mediaStream) mediaStream.getTracks().forEach(track => track.stop());
+});
+
+window.addEventListener('beforeunload', (event) => {
+  const unsavedTake = recorderPhase === 'review' && currentTakeFile && !takeSaved;
+  if (recorderPhase === 'recording' || recorderPhase === 'paused' || recorderPhase === 'encoding' || unsavedTake) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+});
 
 window.saveDevotion = async function() {
   const monthVal = document.getElementById('f_month').value;
   if (!monthVal) {
     showToast('⚠️ Please select a month before saving.', 4000);
     document.getElementById('f_month').focus();
+    return;
+  }
+
+  if (recorderPhase === 'recording' || recorderPhase === 'paused' || recorderPhase === 'encoding') {
+    showToast('Stop the recording before saving the devotion.', 4000);
     return;
   }
 
@@ -874,12 +1719,11 @@ window.saveDevotion = async function() {
       if (existing && existing.image_url) data.image_url = existing.image_url;
     }
 
-    // Upload audio if a new one was selected
+    // Upload audio if a new file or recording was selected.
+    // Stored at devotion_audio/ and written to audio_url, same as before.
     if (pendingAudioFile) {
       document.getElementById('audioUploadProgress').classList.add('show');
-      const audioRef = ref(storage, `devotion_audio/day_${data.day_number}_${Date.now()}_${pendingAudioFile.name}`);
-      await uploadBytes(audioRef, pendingAudioFile);
-      data.audio_url = await getDownloadURL(audioRef);
+      data.audio_url = await putDevotionAudio(pendingAudioFile, data.day_number);
       document.getElementById('audioUploadProgress').classList.remove('show');
     } else if (currentEditId) {
       const existing = allDevotions.find(x => x.id === currentEditId);
