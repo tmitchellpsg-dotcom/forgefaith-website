@@ -177,32 +177,13 @@
 
 <div id="toast"></div>
 
+<script src="../js/devotion-today.js"></script>
 <script>
 /* Forge Faith — free daily preview.
    Shows today's devotion TITLE + VERSE REFERENCE + VERSE TEXT on the website, free.
    The written devotion, audio, life application, challenge and prayer stay app-only.
-   The day is pinned to America/New_York so every visitor sees the same devotion. */
+   The day is pinned to America/Chicago so the site matches the app. */
 (function () {
-  var TZ = 'America/New_York';
-  var APP_URL = 'https://apps.apple.com/us/app/id6781935591';
-  var MONTHS = ['January','February','March','April','May','June',
-                'July','August','September','October','November','December'];
-
-  function esc(v) {
-    return String(v == null ? '' : v)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  // Today's date as Forge Faith reckons it (Eastern), not the visitor's device clock.
-  window.ffTodayParts = function () {
-    var p = {};
-    new Intl.DateTimeFormat('en-US', {
-      timeZone: TZ, year: 'numeric', month: 'numeric', day: 'numeric'
-    }).formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
-    return { year: +p.year, monthIndex: +p.month - 1, day: +p.day };
-  };
-
   function injectStyles() {
     if (document.getElementById('ffTodayStyles')) return;
     var s = document.createElement('style');
@@ -232,40 +213,11 @@
 
   window.renderTodayDevotion = function (devotions) {
     var host = document.getElementById('todayDevotion');
-    if (!host) return;
-
-    var t = window.ffTodayParts();
-    var list = (devotions || []).slice().sort(function (a, b) {
-      return (a.day_number || 0) - (b.day_number || 0);
-    });
-
-    var d = null, i;
-    for (i = 0; i < list.length; i++) {
-      if (list[i].day_number === t.day) { d = list[i]; break; }
-    }
-    if (!d) {                       // no exact match (short month, or month not filled in yet)
-      for (i = 0; i < list.length; i++) {
-        if (list[i].day_number <= t.day) d = list[i];
-      }
-    }
-    if (!d) { host.innerHTML = ''; return; }
-
+    if (!host || !window.ffSelectTodayDevotion) return;
+    var picked = window.ffSelectTodayDevotion(devotions || []);
+    if (!picked.devotion) { host.innerHTML = ''; return; }
     injectStyles();
-    var isToday = d.day_number === t.day;
-
-    host.innerHTML =
-      '<section class="today-dev">' +
-        '<div class="today-dev-head">' +
-          '<span class="today-dev-eyebrow">' + (isToday ? 'Today&rsquo;s Devotion' : 'Latest Devotion') + '</span>' +
-          '<span class="today-dev-date">' + MONTHS[t.monthIndex] + ' ' + t.day + ', ' + t.year + '</span>' +
-        '</div>' +
-        '<p class="today-dev-day">Day ' + esc(d.day_number) + (d.theme ? ' &middot; ' + esc(d.theme) : '') + '</p>' +
-        '<h2 class="today-dev-title">' + esc(d.title || 'Untitled') + '</h2>' +
-        (d.verse_text ? '<blockquote class="today-dev-verse">&ldquo;' + esc(d.verse_text) + '&rdquo;</blockquote>' : '') +
-        (d.verse_reference ? '<p class="today-dev-ref">&mdash; ' + esc(d.verse_reference) + ' (NASB)</p>' : '') +
-        '<p class="today-dev-note">The written devotion, audio version, reflection questions and prayer are in the app.</p>' +
-        '<a class="btn-primary" href="' + APP_URL + '" target="_blank" rel="noopener">Read the Full Devotion</a>' +
-      '</section>';
+    host.innerHTML = window.ffTodayBlockHtml(picked.devotion, picked.today);
   };
 })();
 </script>
@@ -341,33 +293,48 @@ function injectGateStyles() {
   document.head.appendChild(s);
 }
 
-function updateSeriesBanner() {
+function updateSeriesBanner(monthDevotions) {
   const nowParts = window.ffTodayParts
     ? window.ffTodayParts()
-    : { monthIndex: new Date().getMonth(), year: new Date().getFullYear() };
-  const currentMonth = nowParts.monthIndex;
-  const currentYear = nowParts.year;
+    : { monthIndex: new Date().getMonth(), year: new Date().getFullYear(), monthName: monthNames[new Date().getMonth()] };
+  activeMonthName = nowParts.monthName || monthNames[nowParts.monthIndex];
 
-  let activeSeries = SERIES[0];
-  for (const s of SERIES) {
-    if (s.year < currentYear || (s.year === currentYear && s.month <= currentMonth)) {
-      activeSeries = s;
+  const series = SERIES.find(function (s) {
+    return s.year === nowParts.year && s.month === nowParts.monthIndex;
+  });
+
+  const themes = [];
+  (monthDevotions || []).forEach(function (d) {
+    const theme = String(d.theme || '').trim();
+    if (theme && themes.indexOf(theme) === -1) themes.push(theme);
+  });
+
+  if (series) {
+    document.getElementById('seriesEyebrow').textContent = 'Month ' + series.num + ' - ' + activeMonthName + ' ' + series.year;
+    document.getElementById('seriesTitle').textContent = series.name;
+    document.getElementById('seriesSubtitle').textContent = series.subtitle;
+    document.getElementById('seriesNext').textContent = series.next ? 'Next: ' + series.next : '';
+    for (let i = 1; i <= 4; i++) {
+      const dot = document.getElementById('dot' + i);
+      if (!dot) continue;
+      dot.classList.remove('active', 'complete');
+      if (i < series.num) dot.classList.add('complete');
+      if (i === series.num) dot.classList.add('active');
     }
+    return;
   }
 
-  activeMonthName = monthNames[activeSeries.month];
-
-  document.getElementById('seriesEyebrow').textContent = 'Month ' + activeSeries.num + ' - ' + monthNames[activeSeries.month] + ' ' + activeSeries.year;
-  document.getElementById('seriesTitle').textContent = activeSeries.name;
-  document.getElementById('seriesSubtitle').textContent = activeSeries.subtitle;
-  document.getElementById('seriesNext').textContent = activeSeries.next ? 'Next: ' + activeSeries.next : 'You have completed the full series. More coming soon.';
-
+  // Past the original four-month list. Name the month we are actually in
+  // instead of leaving the last hardcoded series (October / Endure) active.
+  document.getElementById('seriesEyebrow').textContent = activeMonthName + ' ' + nowParts.year;
+  document.getElementById('seriesTitle').textContent = themes.length === 1 ? themes[0] : activeMonthName;
+  document.getElementById('seriesSubtitle').textContent = 'A new devotion each day this month. The written devotion, audio, and prayer are in the app.';
+  document.getElementById('seriesNext').textContent = '';
   for (let i = 1; i <= 4; i++) {
     const dot = document.getElementById('dot' + i);
     if (!dot) continue;
-    dot.classList.remove('active', 'complete');
-    if (i < activeSeries.num) dot.classList.add('complete');
-    if (i === activeSeries.num) dot.classList.add('active');
+    dot.classList.remove('active');
+    dot.classList.add('complete');
   }
 }
 
@@ -406,8 +373,12 @@ async function loadDevotions() {
     return;
   }
 
-  allDevotions = rows.filter(function (d) { return d.month === activeMonthName; });
-  if (window.renderTodayDevotion) renderTodayDevotion(allDevotions);
+  const picked = window.ffSelectTodayDevotion
+    ? window.ffSelectTodayDevotion(rows)
+    : { monthDevotions: rows.filter(function (d) { return d.month === activeMonthName; }) };
+  allDevotions = picked.monthDevotions;
+  updateSeriesBanner(allDevotions);
+  if (window.renderTodayDevotion) renderTodayDevotion(rows);
   renderGrid();
 }
 
