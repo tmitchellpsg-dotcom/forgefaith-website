@@ -125,6 +125,7 @@
 .devotion-peek { background: var(--dark); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .peek-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 3rem; }
+.peek-grid.is-today { grid-template-columns: minmax(0, 36rem); justify-content: center; }
 .peek-card {
   background: var(--dark-3); border: 1px solid var(--gold-border);
   border-radius: 6px; padding: 1.75rem;
@@ -335,9 +336,11 @@
   </div>
 </section>
 
+<script src="js/devotion-today.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, getDocs, orderBy, query, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, getDocs, orderBy, query } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDCMGGbiWJTPfuvltmeFKWtM7MndhzH_5c",
@@ -350,45 +353,55 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-function isUnlocked(d) {
-  if (d.day_number === 1) return true;
-  if (!d.unlock_date) return false;
-  const unlockDate = d.unlock_date.toDate ? d.unlock_date.toDate() : new Date(d.unlock_date);
-  return new Date() >= unlockDate;
+function peekMessage(text) {
+  const grid = document.getElementById('homePeekGrid');
+  grid.classList.remove('is-today');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">' + text + '</div>';
 }
 
-async function loadPeek() {
+// Same sources as the devotions page. Signed-in members can read the full
+// collection. Everyone else gets the public title + scripture mirror.
+async function fetchDevotionRows(signedIn) {
+  const sources = signedIn ? ['devotions', 'devotions_public'] : ['devotions_public', 'devotions'];
+  let readOne = false;
+  for (const name of sources) {
+    try {
+      const snap = await getDocs(query(collection(db, name), orderBy('day_number', 'asc')));
+      readOne = true;
+      const rows = snap.docs.map(function (docSnap) {
+        return Object.assign({ id: docSnap.id }, docSnap.data());
+      });
+      if (rows.length) return { rows: rows, readOne: true };
+    } catch (err) {
+      console.warn('Devotions source unavailable: ' + name + ' (' + (err.code || err.message) + ')');
+    }
+  }
+  return { rows: [], readOne: readOne };
+}
+
+async function loadPeek(signedIn) {
+  const grid = document.getElementById('homePeekGrid');
+  if (!grid || !window.ffSelectTodayDevotion) return;
   try {
-    const q = query(collection(db, 'devotions'), orderBy('day_number', 'asc'), limit(3));
-    const snapshot = await getDocs(q);
-    const devotions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    const grid = document.getElementById('homePeekGrid');
-    if (devotions.length === 0) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">Devotions launching soon.</div>';
+    const result = await fetchDevotionRows(!!signedIn);
+    const picked = window.ffSelectTodayDevotion(result.rows);
+    if (!picked.devotion) {
+      if (!result.readOne) peekMessage('Unable to load devotions right now.');
+      else if (!result.rows.length) peekMessage('Today&rsquo;s devotion preview isn&rsquo;t available right now.');
+      else peekMessage('Today&rsquo;s devotion isn&rsquo;t posted yet.');
       return;
     }
-    grid.innerHTML = devotions.map(d => {
-      const free = d.day_number === 1;
-      const unlocked = isUnlocked(d);
-      return `<div class="peek-card fade-in" ${!unlocked ? 'style="opacity:0.55;pointer-events:none;"' : ''}>
-        <p class="peek-day">Day ${d.day_number}${free ? ' — Free' : ' — Pro'}</p>
-        <h3>${d.title || ''}</h3>
-        ${d.verse_text ? `<p class="peek-verse">"${d.verse_text.substring(0,80)}${d.verse_text.length>80?'…':''}" — ${d.verse_reference||''}</p>` : ''}
-        <p>${(d.body_1||'').substring(0,140)}${(d.body_1||'').length>140?'…':''}</p>
-        <div class="peek-cta">
-          ${unlocked
-            ? `<a href="pages/devotions.html" class="btn-ghost">Read Full Devotion</a>`
-            : `<span style="font-size:0.8rem;color:var(--text-dim);">🔒 Unlock with Pro</span>`}
-        </div>
-      </div>`;
-    }).join('');
-  } catch(err) {
+    grid.classList.add('is-today');
+    grid.innerHTML = window.ffHomePeekHtml(picked.devotion, picked.today);
+  } catch (err) {
     console.error(err);
-    document.getElementById('homePeekGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text-muted);">Unable to load devotions right now.</div>';
+    peekMessage('Unable to load devotions right now.');
   }
 }
-loadPeek();
+
+onAuthStateChanged(auth, function (user) { loadPeek(user); });
 </script>
 
 <!-- ── APP DOWNLOAD ── -->
