@@ -592,6 +592,7 @@ select.form-select {
 
 <div id="toast"></div>
 
+<script src="../js/public-preview.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
@@ -747,16 +748,25 @@ window.deletePrayerRequest = async function(id) {
 };
 
 // ───── PUBLIC PREVIEWS ─────
-// Mirrors ONLY the title and the scripture into a world-readable collection so the
-// website can show a free daily teaser. The devotion body, life application,
-// challenge, prayer, audio and images never leave the protected devotions collection.
+// Copies title and scripture for published devotions only into the world-readable
+// mirror. Unpublished and leftover mirror rows are deleted from devotions_public.
+// Nothing in the devotions collection, and no audio or images, is written or deleted.
 window.publishPublicPreviews = async function () {
   if (!allDevotions.length) { showToast('⚠️ No devotions loaded yet.', 4000); return; }
+  if (!window.ffPlanPublicPreviews || !window.ffPublicPreviewPayload || !window.ffPublicPreviewIdsToRemove) {
+    showToast('⚠️ Public preview helper failed to load. Refresh and try again.', 5000);
+    return;
+  }
 
-  const rows = allDevotions.filter(d => d.month && d.day_number);
-  const skipped = allDevotions.length - rows.length;
+  const planned = window.ffPlanPublicPreviews(allDevotions);
+  const rows = planned.publishable;
 
-  const ok = confirm('Publish ' + rows.length + ' public previews? Only the month, day number, title, verse reference and verse text are copied to devotions_public. The devotion body, life application, challenge, prayer, audio and images are never included.');
+  const ok = confirm(
+    'Publish ' + rows.length + ' public preview' + (rows.length === 1 ? '' : 's') + '? ' +
+    'Only published devotions are copied — month, day, title, and verse. ' +
+    'Public previews for unpublished or removed devotions are deleted from the public mirror. ' +
+    'The main devotion library, audio, and images are not changed.'
+  );
   if (!ok) return;
 
   const btn = document.getElementById('publishPublicBtn');
@@ -765,40 +775,44 @@ window.publishPublicPreviews = async function () {
   let done = 0, failed = 0;
   for (const d of rows) {
     try {
-      await setDoc(doc(db, 'devotions_public', d.id), {
-        month: d.month,
-        day_number: d.day_number,
-        title: d.title || '',
-        verse_reference: d.verse_reference || '',
-        verse_text: d.verse_text || ''
-      });
+      await setDoc(doc(db, 'devotions_public', d.id), window.ffPublicPreviewPayload(d));
       done++;
     } catch (err) { failed++; console.error('devotions_public write failed for ' + d.id, err); }
   }
 
-  // Drop previews whose devotion no longer exists, so deleted content cannot linger publicly.
+  // Mirror-only cleanup. Unpublished source rows and leftovers from an earlier
+  // publish are not in `rows`, so their public copies are removed here.
   let removed = 0;
+  let cleanupError = null;
   try {
-    const liveIds = new Set(rows.map(r => r.id));
     const existing = await getDocs(collection(db, 'devotions_public'));
-    for (const prev of existing.docs) {
-      if (!liveIds.has(prev.id)) {
-        try { await deleteDoc(doc(db, 'devotions_public', prev.id)); removed++; }
-        catch (err) { console.error('devotions_public cleanup failed for ' + prev.id, err); }
+    const removeIds = window.ffPublicPreviewIdsToRemove(existing.docs.map(function (prev) { return prev.id; }), rows);
+    for (const id of removeIds) {
+      try {
+        await deleteDoc(doc(db, 'devotions_public', id));
+        removed++;
+      } catch (err) {
+        failed++;
+        console.error('devotions_public cleanup failed for ' + id, err);
       }
     }
-  } catch (err) { console.error('devotions_public cleanup skipped', err); }
+  } catch (err) {
+    cleanupError = err;
+    console.error('devotions_public cleanup skipped', err);
+  }
 
   if (btn) { btn.disabled = false; btn.textContent = '🌐 Publish Public Previews'; }
 
-  if (failed) {
-    showToast('⚠️ Published ' + done + ', ' + failed + ' failed — see the browser console.', 6000);
-  } else {
-    let msg = '✅ Published ' + done + ' public previews';
-    if (removed) msg += ', removed ' + removed + ' stale';
-    if (skipped) msg += ' (' + skipped + ' skipped: no month or day number)';
-    showToast(msg + '.', 6000);
+  if (failed || cleanupError) {
+    showToast('⚠️ Published ' + done + ' preview' + (done === 1 ? '' : 's') + ', removed ' + removed + '. Some public-mirror updates failed — see the browser console. The main library was not changed.', 7000);
+    return;
   }
+
+  let msg = '✅ Published ' + done + ' public preview' + (done === 1 ? '' : 's');
+  if (removed) msg += ', removed ' + removed + ' unpublished or stale';
+  if (planned.unpublished.length) msg += '. Left ' + planned.unpublished.length + ' unpublished off the public site';
+  if (planned.incomplete.length) msg += '. Skipped ' + planned.incomplete.length + ' published devotion' + (planned.incomplete.length === 1 ? '' : 's') + ' with no month or day number';
+  showToast(msg + '.', 6000);
 };
 
 // ───── LOAD ─────

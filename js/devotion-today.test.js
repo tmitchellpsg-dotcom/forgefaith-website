@@ -70,16 +70,21 @@ test('hides December imports once that month arrives if they are still unpublish
   assert.equal(picked.monthDevotions.length, 0);
 });
 
-test('accepts published:true and a public title-only mirror row', function () {
-  const byFlag = api.selectToday([
+test('a public mirror row is shown only when is_complete is true', function () {
+  const shown = api.selectToday([
+    { day_number: '24', month: 'november', title: 'Public Mirror', verse_reference: 'John 1:1', verse_text: 'In the beginning', is_complete: true }
+  ], NOV_24_CHICAGO);
+  assert.equal(shown.devotion.title, 'Public Mirror');
+
+  const missingFlag = api.selectToday([
+    { day_number: 24, month: 'November', title: 'Old Mirror', verse_text: 'verse' }
+  ], NOV_24_CHICAGO);
+  assert.equal(missingFlag.devotion, null);
+
+  const otherFlag = api.selectToday([
     row({ day_number: 24, title: 'Flagged', is_complete: undefined, published: true, devotion_body: 'body' })
   ], NOV_24_CHICAGO);
-  assert.equal(byFlag.devotion.title, 'Flagged');
-
-  const mirror = api.selectToday([
-    { day_number: '24', month: 'november', title: 'Public Mirror', verse_reference: 'John 1:1', verse_text: 'In the beginning' }
-  ], NOV_24_CHICAGO);
-  assert.equal(mirror.devotion.title, 'Public Mirror');
+  assert.equal(otherFlag.devotion, null);
 });
 
 test('a full devotion with no published flag stays hidden', function () {

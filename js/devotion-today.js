@@ -47,21 +47,11 @@
     };
   }
 
-  function hasProtectedContent(d) {
-    return !!(d.devotion_body || d.body_1 || d.body_2 || d.body_3 ||
-      d.life_application || d.challenge || d.prayer || d.audio_url);
-  }
-
-  // Published means the admin checkbox (is_complete) or an explicit published
-  // flag. A full devotion with neither flag stays hidden. devotions_public
-  // rows are title + scripture only and carry no flag; those are the public
-  // teaser channel. An explicit false always wins, so an unpublished import
-  // cannot slip through.
+  // The admin "Mark as Published" checkbox is is_complete. A public-mirror
+  // row copied before that flag was stored has no is_complete, and an
+  // unpublished import has is_complete false. Both stay off the site.
   function isShownOnSite(d) {
-    if (!d || typeof d !== 'object') return false;
-    if (d.is_complete === false || d.published === false) return false;
-    if (d.is_complete === true || d.published === true) return true;
-    return !hasProtectedContent(d);
+    return !!(d && typeof d === 'object' && d.is_complete === true);
   }
 
   function inCurrentMonth(d, today) {
